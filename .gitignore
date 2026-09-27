@@ -35,3 +35,6 @@ coverage/
 # Misc
 *.pem
 .cache/
+
+# Participant PII — only the hashed api/_data tables are committed
+HOP_Certificate/participants_data.csv

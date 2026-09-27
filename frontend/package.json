@@ -23,6 +23,7 @@
     "check:encoding": "node scripts/check-encoding.mjs",
     "check:critical": "node scripts/check-critical-blockers.mjs",
     "fix:encoding": "python scripts/fix-encoding.py",
+    "build:certificates": "node scripts/build-certificate-data.mjs",
     "optimize:models": "node scripts/optimize-hero-models.mjs",
     "optimize:models:ktx2": "node scripts/optimize-hero-models.mjs --ktx2"
   },

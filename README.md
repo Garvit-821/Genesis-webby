@@ -15,7 +15,7 @@ flowchart TD
     Features --> Infra["infrastructure: performance and 3D quality"]
 ```
 
-Source code lives in `frontend/src`. Routes are `/`, `/gallery`, `/events`, `/team`, and `/admin-events`.
+Source code lives in `frontend/src`. Routes are `/`, `/gallery`, `/events`, `/team`, `/contact`, `/careers`, `/partner`, `/collaborate`, and `/admin-events`.
 
 ## Event Management Admin Panel
 
@@ -47,6 +47,13 @@ Source code lives in `frontend/src`. Routes are `/`, `/gallery`, `/events`, `/te
 4. **Real-time Website Synchronization (`eventService.js`)**:
    - Updates made in the admin panel are saved locally and broadcasted in real time.
    - Both `EventsPage.jsx` and the homepage `Events.jsx` automatically reflect any additions, edits, or status changes instantly.
+
+## Form submissions
+
+Contact, Work With Us, Partner and Collaborate form submissions are saved to a Google Sheet, one tab per form.
+
+- **Viewing responses**: open the `Genesis Website Form Submissions` Google Sheet (ask a team admin for access) or download it via **File > Download > Microsoft Excel (.xlsx)**.
+- **Setting it up or reconnecting it**: follow [`docs/GOOGLE_SHEETS_SCRIPT.md`](docs/GOOGLE_SHEETS_SCRIPT.md). The script is in [`docs/google-sheets/Code.gs`](docs/google-sheets/Code.gs), and the web app URL goes in `GOOGLE_SHEETS_WEBHOOK_URL` and `REACT_APP_GOOGLE_SHEETS_WEBHOOK_URL`.
 
 ## Start locally
 

@@ -98,7 +98,7 @@ module.exports = async function handler(req, res) {
       await fetch(`https://formspree.io/f/${formspreeId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ ...payload, _subject: `Genesis ${formType} Form Submission — ${name}` }),
+        body: JSON.stringify({ ...payload, attachmentData: undefined, _subject: `Genesis ${formType} Form Submission — ${name}` }),
       });
     } catch (e) {
       // Ignore secondary error

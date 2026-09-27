@@ -18,6 +18,7 @@ const TermsPage = lazy(() => import("@pages/terms/TermsPage"));
 const TeamPage = lazy(() => import("@pages/team/TeamPage"));
 const AdminEventsPage = lazy(() => import("@pages/admin/AdminEventsPage"));
 const GuidePage = lazy(() => import("@pages/guide/GuidePage"));
+const CertificatePage = lazy(() => import("@pages/certificates/CertificatePage"));
 import HackersOccupiedPunePage from "@pages/events/HackersOccupiedPunePage";
 const NotFoundPage = lazy(() => import("@pages/not-found/NotFoundPage"));
 
@@ -85,6 +86,18 @@ export default function AppRouter() {
                 <HackersOccupiedPunePage />
               </PageBoundary>
             }
+          />
+          <Route
+            path="/certificates/hackers-occupied-pune"
+            element={
+              <PageBoundary title="Certificates failed to load.">
+                <CertificatePage />
+              </PageBoundary>
+            }
+          />
+          <Route
+            path="/certificate"
+            element={<Navigate to="/certificates/hackers-occupied-pune" replace />}
           />
           <Route
             path="/about"

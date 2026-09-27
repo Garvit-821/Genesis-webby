@@ -1,120 +1,58 @@
-# Google Apps Script Setup for Genesis Forms
+# Form Data Collection (Google Sheets)
 
-Follow these simple steps to save all website form submissions directly into your **Google Sheet** in real-time!
+Every form on the website (Contact, Work With Us, Partner, Collaborate) saves its submissions to one Google Sheet. Each form gets its own tab, so the team can open the sheet in Google Sheets (or download it as Excel) and follow up from there.
 
----
+| Website page | Tab | Columns |
+| --- | --- | --- |
+| `/contact` | Contact | Timestamp, Name, Email, Reaching out as, Message, Status, Notes |
+| `/careers` | Work With Us | Timestamp, Name, Email, Phone, Domain, Experience, Portfolio / Link, Why Genesis, Status, Notes |
+| `/partner` | Partner | Timestamp, Name, Email, Phone, Company / College, Partnership type, Website, Details, Attachment, Status, Notes |
+| `/collaborate` | Collaborate | Timestamp, Name, Email, Phone, Organization / Event, Collaboration type, Website, Details, Status, Notes |
 
-## Step 1: Create a Google Sheet
+On the Partner form, choosing **Event sponsorship** or **Community partnership** shows an optional brochure / pitch deck upload (PDF, PPT or PPTX, up to 3 MB). The file is saved to a Drive folder called `Genesis Form Uploads` in the Google account that owns the script, and its link goes in the **Attachment** column. The files are private: share that folder with teammates who need them.
 
-1. Go to [Google Sheets](https://sheets.google.com) and create a **Blank Spreadsheet**.
-2. Rename the spreadsheet to **`Genesis Website Form Submissions`**.
+`Status` is set to `New` on every submission. Change it to whatever you use to track follow-up (`Contacted`, `In talks`, `Closed`) and use `Notes` for anything else. The script never overwrites those two columns.
 
----
+The script lives in [`docs/google-sheets/Code.gs`](google-sheets/Code.gs).
 
-## Step 2: Add the Apps Script Code
+## One-time setup
 
-1. In Google Sheets, click **Extensions** > **Apps Script**.
-2. Delete any code in `Code.gs` and paste the script below:
+1. Create a blank sheet at [sheets.google.com](https://sheets.google.com) and name it `Genesis Website Form Submissions`.
+2. Open **Extensions > Apps Script**, delete the default code, and paste in the contents of `docs/google-sheets/Code.gs`.
+3. Select the `setup` function in the toolbar and click **Run**. Approve the permissions prompt. This creates the four tabs with headers.
+   Google will ask for Drive access as well as Sheets access, because the script saves uploads to Drive.
+4. Click **Deploy > New deployment**, choose type **Web app**, then set:
+   - **Execute as**: `Me`
+   - **Who has access**: `Anyone` (required so the website can post without a Google login)
+5. Click **Deploy** and copy the **Web app URL** (it ends in `/exec`).
+6. Paste the URL into the environment variables, locally in `frontend/.env` and in the Vercel project settings for production:
 
-```javascript
-/**
- * Genesis Hacks - Google Sheets Form Submission Webhook Handler
- */
-function doPost(e) {
-  var lock = LockService.getScriptLock();
-  lock.tryLock(10000);
+   ```env
+   GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+   REACT_APP_GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+   ```
 
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    
-    // Auto-create headers if sheet is empty
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow([
-        "Timestamp",
-        "Form Type",
-        "Name",
-        "Email",
-        "Role / Org",
-        "Interest / Subject",
-        "Portfolio / Link",
-        "Phone",
-        "Message / Details"
-      ]);
-      // Format Header Row
-      var headerRange = sheet.getRange(1, 1, 1, 9);
-      headerRange.setFontWeight("bold");
-      headerRange.setBackground("#4c1d95");
-      headerRange.setFontColor("#ffffff");
-    }
+7. Redeploy the site (Vercel bakes `REACT_APP_*` values in at build time).
 
-    var data = {};
-    if (e.postData && e.postData.contents) {
-      try {
-        data = JSON.parse(e.postData.contents);
-      } catch (err) {
-        data = e.parameter || {};
-      }
-    } else {
-      data = e.parameter || {};
-    }
+## Check that it works
 
-    var timestamp = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
-    var formType = data.formType || data.form || "Contact";
-    var name = data.name || data.fullName || "";
-    var email = data.email || "";
-    var roleOrOrg = data.role || data.organization || data.company || "";
-    var interest = data.interest || data.partnershipType || data.subject || "";
-    var portfolio = data.portfolio || data.website || data.linkedin || "";
-    var phone = data.phone || "";
-    var message = data.message || data.details || data.proposal || "";
+- Open the Web app URL in a browser. You should see `{"result":"ok","forms":[...]}`.
+- Submit the Partner form on the site and confirm a new row appears in the **Partner** tab.
+- Submit it again with **Event sponsorship** selected and a small PDF attached. The row should have a Drive link in **Attachment**, and the file should be in the `Genesis Form Uploads` folder.
 
-    sheet.appendRow([
-      timestamp,
-      formType,
-      name,
-      email,
-      roleOrOrg,
-      interest,
-      portfolio,
-      phone,
-      message
-    ]);
+## Getting the data
 
-    return ContentService
-      .createTextOutput(JSON.stringify({ result: "success", row: sheet.getLastRow() }))
-      .setMimeType(ContentService.MimeType.JSON);
+- **Online**: open the Google Sheet and share it with teammates (**Share** button, Viewer or Editor).
+- **Excel**: in the sheet, use **File > Download > Microsoft Excel (.xlsx)**. Each tab becomes a worksheet.
+- **Live copy in Excel**: use **Data > From Web** in Excel against a published CSV link (**File > Share > Publish to web**, pick a tab and CSV). Only do this if the sheet contains nothing you would not want a public link to expose.
 
-  } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ result: "error", error: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } finally {
-    lock.releaseLock();
-  }
-}
-```
+## Changing the script later
 
----
+After editing `Code.gs` in Apps Script, use **Deploy > Manage deployments > Edit > New version**. Saving alone does not update the live web app, and creating a new deployment changes the URL.
 
-## Step 3: Deploy as Web App
+## Notes
 
-1. Click **Deploy** (top right) > **New deployment**.
-2. Select type: **Web app** (gear icon).
-3. Set **Description**: `Genesis Website Form Submission Webhook`.
-4. Set **Execute as**: `Me` (`your-email@gmail.com`).
-5. Set **Who has access**: `Anyone` *(Crucial so form submissions can post without Google login!)*.
-6. Click **Deploy**, authorize access if prompted.
-7. Copy the **Web App URL** (e.g. `https://script.google.com/macros/s/.../exec`).
-
----
-
-## Step 4: Add URL to Environment Variables
-
-Add your Web App URL to your `.env` or Vercel Environment Variables:
-
-```env
-GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec
-REACT_APP_GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec
-```
-
-*Note: Even without configuring env vars, the website form includes direct submission fallbacks and grace management.*
+- If you already ran `setup` before uploads were added, the Partner tab has no **Attachment** column and new rows will be misaligned. Delete the Partner tab and run `setup` again, or insert a column named `Attachment` between `Details` and `Status`. Then publish a new version of the deployment.
+- Uploads are limited to 3 MB because the site's serverless function accepts requests up to about 4.5 MB and files grow by a third when encoded. Larger decks should be shared as a link in the message.
+- Submissions are stored as they arrive. There is no retry queue, so if the webhook URL is missing or wrong, the submission is not saved anywhere. Confirm the check above after every deployment.
+- The sheet contains personal data (names, emails, phone numbers). Keep it restricted to the team and mention it in the privacy policy.

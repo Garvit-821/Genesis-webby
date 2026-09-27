@@ -2,7 +2,7 @@
   "name": "genesis-webby",
   "version": "1.0.0",
   "private": true,
-  "homepage": ".",
+  "homepage": "/",
   "dependencies": {
     "framer-motion": "11.18.0",
     "gsap": "^3.15.0",

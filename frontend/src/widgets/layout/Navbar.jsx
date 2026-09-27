@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useTransform } from "framer-motion";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LANDING } from "@shared/constants/testIds";
 import { usePageScroll } from "@shared/hooks/useSectionScroll";
 import { NAV_MENUS } from "./navMegaData";
@@ -10,6 +10,8 @@ const LOGO_URL = "/images/logo.png";
 /** Nav chrome accent — Genesis lime (matches --heading) */
 const NAV_ACCENT = "#e2efba";
 const NAV_ACCENT_INK = "#181818";
+/** Temporary: Hackers Occupied Pune certificate CTA. Set to null to remove. */
+const CERTIFICATE_CTA = { to: "/certificates/hackers-occupied-pune", label: "Get Certificate" };
 
 function PlusIcon({ open }) {
   return (
@@ -392,6 +394,22 @@ export default function Navbar() {
             ))}
           </nav>
 
+          <div className="hidden shrink-0 items-center gap-3 md:flex">
+          {CERTIFICATE_CTA ? (
+            <Link
+              to={CERTIFICATE_CTA.to}
+              data-testid="nav-certificate-btn"
+              data-cursor
+              data-cursor-label="Certificate"
+              onClick={() => {
+                closeMenu();
+                setMobileOpen(false);
+              }}
+              className="btn-ghost !px-5 !py-3 !text-[12px] !tracking-[0.06em]"
+            >
+              {CERTIFICATE_CTA.label}
+            </Link>
+          ) : null}
           <a
             href="https://hackculture.io/hackathons/hackers-occupied-pune"
             target="_blank"
@@ -403,10 +421,11 @@ export default function Navbar() {
               closeMenu();
               setMobileOpen(false);
             }}
-            className="btn-cinema btn-cinema--nav hidden shrink-0 md:inline-flex"
+            className={`btn-cinema btn-cinema--nav shrink-0 ${CERTIFICATE_CTA ? "hidden xl:inline-flex" : "inline-flex"}`}
           >
             Register Now
           </a>
+          </div>
 
           <button
             type="button"
@@ -456,6 +475,17 @@ export default function Navbar() {
             className="overflow-hidden border-b border-white/10 bg-[#0a0a0a] md:hidden"
           >
             <div className="flex max-h-[min(80vh,640px)] flex-col gap-3 overflow-y-auto px-4 py-5">
+              {CERTIFICATE_CTA ? (
+                <Link
+                  to={CERTIFICATE_CTA.to}
+                  data-testid="mobile-nav-certificate-btn"
+                  onClick={() => setMobileOpen(false)}
+                  className="btn-cinema btn-cinema--nav w-full justify-center text-center"
+                >
+                  {CERTIFICATE_CTA.label}
+                </Link>
+              ) : null}
+
               {/* Primary Mobile Register Now CTA in Hamburger Menu */}
               <a
                 href="https://hackculture.io/hackathons/hackers-occupied-pune"

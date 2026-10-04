@@ -1,4 +1,4 @@
-# Genesis
+# Genesis hack website
 
 An interactive React experience built with Three.js, Framer Motion, GSAP, Lenis, and an adaptive 3D asset pipeline.
 

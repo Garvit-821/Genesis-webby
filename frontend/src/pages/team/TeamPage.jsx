@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import useLenis from '@shared/hooks/useLenis';
 import { Navbar, Footer } from '@widgets/layout';
 import { TeamHero } from './components/TeamHero';
-import { TeamSpotlightReel } from './components/TeamSpotlightReel';
-import { TeamKineticMarquee } from './components/TeamKineticMarquee';
-import { TeamDepartmentChapters } from './components/TeamDepartmentChapters';
-import { TeamMemberDirectory, MemberModal } from './components/TeamMemberDirectory';
+import { TeamRoster } from './components/TeamRoster';
+import { TeamNameMarquee } from './components/TeamNameMarquee';
 import WorkWithUsForm from '@/features/forms/WorkWithUsForm';
 
 function ScrollProgressBar() {
@@ -26,8 +24,6 @@ export default function TeamPage() {
   // Activate Lenis smooth scrolling for buttery scroll choreography
   useLenis();
 
-  const [dept, setDept] = useState('All');
-  const [selectedMember, setSelectedMember] = useState(null);
   const [isWorkFormOpen, setIsWorkFormOpen] = useState(false);
 
   return (
@@ -40,27 +36,17 @@ export default function TeamPage() {
       {/* Global Navigation */}
       <Navbar />
 
-      {/* 1. Kinetic Orbital Hero Section */}
-      <TeamHero onSelect={setSelectedMember} />
+      {/* 1. Editorial Hero */}
+      <TeamHero />
 
-      {/* 2. GSAP Pinned Horizontal Spotlight Reel */}
-      <TeamSpotlightReel onSelect={setSelectedMember} />
+      {/* 2. Core Team Roster */}
+      <TeamRoster />
 
-      {/* 3. Interactive Department Chapters with Sticky Pin & Ambient Wash */}
-      <TeamDepartmentChapters onSelect={setSelectedMember} />
+      {/* 3. Name Marquee */}
+      <TeamNameMarquee />
 
-      {/* 4. Scroll Velocity Kinetic Marquee & Vision Section */}
-      <TeamKineticMarquee />
-
-      {/* 5. Full Roster Directory with Search & Filters */}
-      <TeamMemberDirectory
-        dept={dept}
-        setDept={setDept}
-        onSelect={setSelectedMember}
-      />
-
-      {/* 6. Join the Collective Call-to-Action */}
-      <section className="max-w-[1300px] mx-auto px-4 sm:px-8 pb-28 pt-8">
+      {/* 4. Join the Collective Call-to-Action */}
+      <section className="max-w-[1300px] mx-auto px-4 sm:px-8 py-24 sm:py-28">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -109,16 +95,6 @@ export default function TeamPage() {
         isOpen={isWorkFormOpen}
         onClose={() => setIsWorkFormOpen(false)}
       />
-
-      {/* Member Profile Modal */}
-      <AnimatePresence>
-        {selectedMember && (
-          <MemberModal
-            member={selectedMember}
-            onClose={() => setSelectedMember(null)}
-          />
-        )}
-      </AnimatePresence>
 
       {/* Footer */}
       <Footer />

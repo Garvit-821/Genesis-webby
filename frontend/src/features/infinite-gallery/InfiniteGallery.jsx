@@ -31,6 +31,15 @@ function loadImage(src) {
   });
 }
 
+// CanvasTexture uploads with flipY, so canvas row 0 lands at the top of the
+// texture while the shader counts atlas rows from the bottom. Draw rows
+// bottom-up so tile i in the canvas is tile i in the shader.
+function atlasTileOrigin(index, atlasGrid, tileSize) {
+  const col = index % atlasGrid;
+  const row = Math.floor(index / atlasGrid);
+  return { x: col * tileSize, y: (atlasGrid - 1 - row) * tileSize };
+}
+
 async function buildImageAtlas(photos, tileSize = 512) {
   const count = photos.length;
   const atlasGrid = Math.ceil(Math.sqrt(count));
@@ -47,15 +56,21 @@ async function buildImageAtlas(photos, tileSize = 512) {
 
   images.forEach((img, i) => {
     if (!img) return;
-    const col = i % atlasGrid;
-    const row = Math.floor(i / atlasGrid);
-    const x = col * tileSize;
-    const y = row * tileSize;
+    const { x, y } = atlasTileOrigin(i, atlasGrid, tileSize);
 
-    const scale = Math.max(tileSize / img.width, tileSize / img.height);
-    const w = img.width * scale;
-    const h = img.height * scale;
-    ctx.drawImage(img, x + (tileSize - w) / 2, y + (tileSize - h) / 2, w, h);
+    // Centre square crop, so wide photos don't spill into neighbouring tiles
+    const side = Math.min(img.width, img.height);
+    ctx.drawImage(
+      img,
+      (img.width - side) / 2,
+      (img.height - side) / 2,
+      side,
+      side,
+      x,
+      y,
+      tileSize,
+      tileSize,
+    );
   });
 
   const texture = new THREE.CanvasTexture(canvas);
@@ -77,10 +92,7 @@ async function buildTextAtlas(photos, tileSize = 512) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   photos.forEach((photo, i) => {
-    const col = i % atlasGrid;
-    const row = Math.floor(i / atlasGrid);
-    const x = col * tileSize;
-    const y = row * tileSize;
+    const { x, y } = atlasTileOrigin(i, atlasGrid, tileSize);
 
     ctx.fillStyle = "rgba(0,0,0,0)";
     ctx.fillRect(x, y, tileSize, tileSize);

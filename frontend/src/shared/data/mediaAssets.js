@@ -78,17 +78,32 @@ export const NO_AGENDA_1_PHOTOS = [
 export const SAMVEDNA_HERO = SAMVEDNA_PHOTOS[0].src;
 export const NO_AGENDA_1_HERO = NO_AGENDA_1_PHOTOS[0].src;
 
-// Combined for gallery (mixed masonry)
+// Hackers Occupied Pune (VIT Pune, 22–23 Aug 2026), served from public/gallery
+const HOP_DIR = "/gallery/hackers-occupied-pune";
+const hop = (file, caption, day) => ({
+  src: `${HOP_DIR}/${file}.webp`,
+  caption: `Hackers Occupied · ${caption}`,
+  meta: `Pune · ${day} Aug 2026`,
+  aspect: "aspect-[3/2]",
+});
+
+// Order matters: the WebGL grid tiles index (x + 3y) % length, so the
+// near-identical group shots sit four apart and never touch edge-to-edge.
 export const GALLERY_PHOTOS = [
-  SAMVEDNA_PHOTOS[0],
-  NO_AGENDA_1_PHOTOS[1],
-  SAMVEDNA_PHOTOS[2],
-  NO_AGENDA_1_PHOTOS[0],
-  SAMVEDNA_PHOTOS[3],
-  NO_AGENDA_1_PHOTOS[3],
-  SAMVEDNA_PHOTOS[1],
-  NO_AGENDA_1_PHOTOS[2],
-  SAMVEDNA_PHOTOS[4],
-  NO_AGENDA_1_PHOTOS[5],
-  NO_AGENDA_1_PHOTOS[4],
+  hop("dsc09998", "Full house", 23),
+  hop("dsc09188", "Energy check", 22),
+  hop("dsc09229", "Desk rounds", 22),
+  hop("dsc09243", "Code review", 22),
+  hop("dsc00001", "Closing frame", 23),
+  hop("dsc09246", "The lab floor", 22),
+  hop("dsc09631", "4 AM build", 23),
+  hop("dsc09252", "Talking it through", 22),
+  hop("dsc09999", "Everyone in", 23),
+  hop("dsc09197", "Refuel", 22),
+  hop("dsc09238", "Walkthrough", 22),
+  hop("dsc09340", "Heads down", 22),
+  hop("dsc00002", "Last one", 23),
+  hop("dsc09230", "Under the hood", 22),
+  hop("dsc09267", "Huddle", 22),
+  hop("dsc09397", "Late-night laughs", 22),
 ];

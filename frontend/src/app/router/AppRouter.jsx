@@ -2,7 +2,7 @@ import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ErrorBoundary from "@shared/ui/ErrorBoundary";
 import ConsentBanner from "@shared/consent/ConsentBanner";
-import Loader from "@/components/ui/loader-15";
+import PageLoader from "@/components/ui/page-loader";
 
 const HomePage = lazy(() => import("@pages/home/HomePage"));
 const GalleryPage = lazy(() => import("@pages/gallery/GalleryPage"));
@@ -29,7 +29,7 @@ function RouteFallback() {
       role="status"
       aria-live="polite"
     >
-      <Loader />
+      <PageLoader />
     </div>
   );
 }

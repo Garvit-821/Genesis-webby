@@ -94,7 +94,7 @@ void main() {
                  && cellUV.y > textY && cellUV.y < textY + textHeight;
 
   // Infinite repeating texture index from cell id
-  float texIndex = mod(cellId.x + cellId.y * 3.0, uTextureCount);
+  float texIndex = mod(cellId.x + cellId.y * 4.0, uTextureCount);
   if (texIndex < 0.0) texIndex += uTextureCount;
 
   vec3 color = backgroundColor;

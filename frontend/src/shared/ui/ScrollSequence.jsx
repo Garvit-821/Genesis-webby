@@ -10,8 +10,9 @@ gsap.registerPlugin(ScrollTrigger);
  *
  * Phases: idle → forward → exited → reverse → idle → …
  *
- * Width scrub is driven by a dedicated ScrollTrigger (no gsap.to tween),
- * so y-pop / y-bar animations can never kill the scrub.
+ * A slim progress line at the bottom edge is scrubbed by a dedicated
+ * ScrollTrigger; the canvas waits fully off-screen and only slides up to
+ * cover the viewport once the line fills.
  */
 export default function ScrollSequence({
   frames = [],
@@ -23,10 +24,10 @@ export default function ScrollSequence({
   loopStart = 10,
   loopEnd = 48,
   fps = 45,
-  barRestY = "99.26svh",
   className = "",
 }) {
   const stageRef = useRef(null);
+  const barRef = useRef(null);
   const canvasRef = useRef(null);
   const imagesRef = useRef([]);
   const playerRef = useRef(null);
@@ -75,9 +76,10 @@ export default function ScrollSequence({
 
   useEffect(() => {
     const stage = stageRef.current;
+    const bar = barRef.current;
     const canvas = canvasRef.current;
     const triggerEl = document.querySelector(trigger);
-    if (!stage || !canvas || !triggerEl || !total) return undefined;
+    if (!stage || !bar || !canvas || !triggerEl || !total) return undefined;
 
     const ctx = canvas.getContext("2d", { willReadFrequently: false });
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -134,7 +136,8 @@ export default function ScrollSequence({
     window.addEventListener("resize", resize);
 
     if (reduced) {
-      gsap.set(stage, { width: "100%", y: 0, autoAlpha: 0 });
+      gsap.set(stage, { yPercent: 100, autoAlpha: 0 });
+      gsap.set(bar, { autoAlpha: 0 });
       const hEl = headingEl();
       const bEl = bodyEl();
       if (hEl) gsap.set(hEl, { opacity: 1, y: 0, scale: 1 });
@@ -279,16 +282,17 @@ export default function ScrollSequence({
     };
     playerRef.current = player;
 
-    gsap.set(stage, { width: "0%", y: barRestY, opacity: 0 });
+    gsap.set(stage, { y: 0, yPercent: 100, autoAlpha: 0 });
+    gsap.set(bar, { scaleX: 0, autoAlpha: 0 });
 
     /**
-     * idle     — bar scrubbing, mid-band loop
+     * idle     — progress line scrubbing, canvas hidden below the fold
      * forward  — playThrough in progress
      * exited   — last frame done, canvas off-screen, waiting for scroll-back
      * reverse  — reverseToLoop in progress
      */
     let phase = "idle";
-    let widthScrub = true;
+    let progressScrub = true;
 
     const getLenis = () => window.__lenis;
     const stopScroll = () => {
@@ -325,17 +329,9 @@ export default function ScrollSequence({
       scrollToY(Math.max(0, y));
     };
 
-    const syncBarWidth = (progress) => {
+    const syncProgress = (progress) => {
       const p = Math.min(1, Math.max(0, progress));
-      if (p <= 0.005) {
-        gsap.set(stage, { width: "0%", opacity: 0 });
-      } else {
-        gsap.set(stage, {
-          width: `${p * 100}%`,
-          opacity: 1,
-          y: barRestY,
-        });
-      }
+      gsap.set(bar, { scaleX: p, autoAlpha: p <= 0.005 ? 0 : 1 });
     };
 
     const onLenisScroll = () => ScrollTrigger.update();
@@ -352,14 +348,15 @@ export default function ScrollSequence({
     const startForward = () => {
       if (phase !== "idle") return;
       phase = "forward";
-      widthScrub = false;
-      gsap.set(stage, { width: "100%", opacity: 1 });
+      progressScrub = false;
+      gsap.to(bar, { autoAlpha: 0, duration: 0.25 });
+      gsap.set(stage, { yPercent: 100, autoAlpha: 1 });
 
       stopScroll();
       player.playThrough();
 
       gsap.to(stage, {
-        y: 0,
+        yPercent: 0,
         duration: 1.133,
         ease: "power2.out",
         onComplete: () => {
@@ -373,7 +370,7 @@ export default function ScrollSequence({
     const startReverse = () => {
       if (phase !== "exited") return;
       phase = "reverse";
-      widthScrub = false;
+      progressScrub = false;
       stopScroll();
 
       // Always start reverse from the last frame (mirrors forward end state).
@@ -383,39 +380,40 @@ export default function ScrollSequence({
       player.reverseToLoop();
 
       hideReveal();
-      gsap.set(stage, { opacity: 1, y: "0%", width: "100%" });
+      gsap.set(stage, { autoAlpha: 1, yPercent: 0 });
     };
 
     player.onComplete = () => {
       // Forward finished — canvas exits upward, unlock scroll.
       phase = "exited";
       window.setTimeout(() => {
-        gsap.set(stage, { y: "-100%" });
+        gsap.set(stage, { yPercent: -100 });
         startScroll();
       }, 600);
     };
 
     player.onReverseComplete = () => {
-      // Park inside trigger (not past it), slide canvas back to bar, return idle.
+      // Park inside trigger (not past it), slide canvas back down, return idle.
       startScroll();
       parkAtTriggerEnd();
 
       gsap.to(stage, {
-        y: barRestY,
+        yPercent: 100,
         duration: 1.133,
         ease: "power2.out",
         onComplete: () => {
+          gsap.set(stage, { autoAlpha: 0 });
           phase = "idle";
-          widthScrub = true;
-          // Sync width to wherever we parked.
+          progressScrub = true;
+          // Sync the line to wherever we parked.
           const st = ScrollTrigger.getById("genesisCanvasScroll");
-          syncBarWidth(st ? st.progress : 1);
+          syncProgress(st ? st.progress : 1);
           startScroll();
         },
       });
     };
 
-    // Single ScrollTrigger — width scrub + progress-edge phase transitions.
+    // Single ScrollTrigger — progress scrub + progress-edge phase transitions.
     // Progress edges are re-armable every cycle (unlike one-shot onLeave alone).
     const st = ScrollTrigger.create({
       id: "genesisCanvasScroll",
@@ -425,7 +423,7 @@ export default function ScrollSequence({
       scrub: true,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
-        if (widthScrub) syncBarWidth(self.progress);
+        if (progressScrub) syncProgress(self.progress);
 
         // Crossing the end going down → forward
         if (self.progress >= 0.995 && self.direction === 1) {
@@ -446,7 +444,7 @@ export default function ScrollSequence({
     });
 
     if (st.progress > 0 && st.progress < 1) {
-      syncBarWidth(st.progress);
+      syncProgress(st.progress);
     }
 
     return () => {
@@ -455,7 +453,7 @@ export default function ScrollSequence({
       window.removeEventListener("resize", resize);
       getLenis()?.off?.("scroll", onLenisScroll);
       startScroll();
-      gsap.set(stage, { clearProps: "width,y,opacity,position" });
+      gsap.set([stage, bar], { clearProps: "transform,opacity,visibility" });
     };
   }, [
     total,
@@ -468,25 +466,37 @@ export default function ScrollSequence({
     revealHeading,
     revealBody,
     revealFrame,
-    barRestY,
   ]);
 
   return (
-    <div
-      ref={stageRef}
-      className={`pointer-events-none fixed inset-x-0 top-0 z-[30] h-[100vh] overflow-hidden ${className}`}
-      style={{ width: "0%", transform: `translateY(${barRestY})` }}
-      aria-hidden="true"
-    >
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 block h-full w-full"
+    <>
+      <div
+        ref={barRef}
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-[30] h-[2px] origin-left"
+        style={{
+          transform: "scaleX(0)",
+          visibility: "hidden",
+          backgroundImage: "linear-gradient(90deg, var(--brand), var(--heading))",
+          boxShadow: "0 0 12px rgba(196, 181, 253, 0.45)",
+        }}
+        aria-hidden="true"
       />
-      {total > 0 && loaded < total && (
-        <div className="absolute bottom-6 right-6 z-[4] font-mono text-[11px] uppercase tracking-[0.2em] text-white/50">
-          {Math.round((loaded / total) * 100)}%
-        </div>
-      )}
-    </div>
+      <div
+        ref={stageRef}
+        className={`pointer-events-none fixed inset-x-0 top-0 z-[30] h-[100vh] overflow-hidden ${className}`}
+        style={{ transform: "translateY(100%)", visibility: "hidden" }}
+        aria-hidden="true"
+      >
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 block h-full w-full"
+        />
+        {total > 0 && loaded < total && (
+          <div className="absolute bottom-6 right-6 z-[4] font-mono text-[11px] uppercase tracking-[0.2em] text-white/50">
+            {Math.round((loaded / total) * 100)}%
+          </div>
+        )}
+      </div>
+    </>
   );
 }

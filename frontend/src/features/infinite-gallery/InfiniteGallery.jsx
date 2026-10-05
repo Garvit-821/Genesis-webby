@@ -40,7 +40,10 @@ function atlasTileOrigin(index, atlasGrid, tileSize) {
   return { x: col * tileSize, y: (atlasGrid - 1 - row) * tileSize };
 }
 
-async function buildImageAtlas(photos, tileSize = 512) {
+// Returns the atlas texture straight away and paints each photo into its
+// tile as it arrives, so the grid fills in instead of waiting on the
+// slowest download. `onTile` fires after every painted tile.
+function createImageAtlas(photos, tileSize, onTile) {
   const count = photos.length;
   const atlasGrid = Math.ceil(Math.sqrt(count));
   const canvas = document.createElement("canvas");
@@ -50,35 +53,36 @@ async function buildImageAtlas(photos, tileSize = 512) {
   ctx.fillStyle = "#111018";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const images = await Promise.all(
-    photos.map((p) => loadImage(p.src).catch(() => null)),
-  );
-
-  images.forEach((img, i) => {
-    if (!img) return;
-    const { x, y } = atlasTileOrigin(i, atlasGrid, tileSize);
-
-    // Centre square crop, so wide photos don't spill into neighbouring tiles
-    const side = Math.min(img.width, img.height);
-    ctx.drawImage(
-      img,
-      (img.width - side) / 2,
-      (img.height - side) / 2,
-      side,
-      side,
-      x,
-      y,
-      tileSize,
-      tileSize,
-    );
-  });
-
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
   texture.generateMipmaps = false;
   texture.needsUpdate = true;
+
+  photos.forEach((photo, i) => {
+    loadImage(photo.src)
+      .then((img) => {
+        const { x, y } = atlasTileOrigin(i, atlasGrid, tileSize);
+
+        // Centre square crop, so wide photos don't spill into neighbouring tiles
+        const side = Math.min(img.width, img.height);
+        ctx.drawImage(
+          img,
+          (img.width - side) / 2,
+          (img.height - side) / 2,
+          side,
+          side,
+          x,
+          y,
+          tileSize,
+          tileSize,
+        );
+        onTile(texture);
+      })
+      .catch(() => {});
+  });
+
   return texture;
 }
 
@@ -137,7 +141,7 @@ function cellIndexFromOffset(offset, zoom, resolution, samplePos, cellSize) {
   const cellIdX = Math.floor(world.x / cellSize);
   const cellIdY = Math.floor(world.y / cellSize);
   const count = GALLERY_PHOTOS.length;
-  let texIndex = (cellIdX + cellIdY * 3) % count;
+  let texIndex = (cellIdX + cellIdY * 4) % count;
   if (texIndex < 0) texIndex += count;
   return texIndex;
 }
@@ -255,25 +259,31 @@ export default function InfiniteGallery() {
       setActiveCaption(photo);
     };
 
-    Promise.all([
-      buildImageAtlas(GALLERY_PHOTOS, atlasTile),
-      buildTextAtlas(GALLERY_PHOTOS, atlasTile),
-    ])
-      .then(([imageAtlas, textAtlas]) => {
+    uniforms.uImageAtlas.value = createImageAtlas(
+      GALLERY_PHOTOS,
+      atlasTile,
+      (texture) => {
+        if (cancelled) return;
+        texture.needsUpdate = true;
+        setReady(true);
+      },
+    );
+
+    buildTextAtlas(GALLERY_PHOTOS, atlasTile)
+      .then((textAtlas) => {
         if (cancelled) {
-          imageAtlas.dispose();
           textAtlas.dispose();
           return;
         }
-        uniforms.uImageAtlas.value = imageAtlas;
         uniforms.uTextAtlas.value = textAtlas;
         uniforms.uHasTextAtlas.value = 1;
-        material.needsUpdate = true;
-        setReady(true);
       })
-      .catch(() => {
-        if (!cancelled) setReady(true);
-      });
+      .catch(() => {});
+
+    // Never leave the loading label up if every photo fails
+    const readyFallback = window.setTimeout(() => {
+      if (!cancelled) setReady(true);
+    }, 8000);
 
     const updateSampleFromEvent = (event) => {
       const rect = renderer.domElement.getBoundingClientRect();
@@ -520,6 +530,7 @@ export default function InfiniteGallery() {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(readyFallback);
       unsubGate();
       gate.destroy();
       cancelAnimationFrame(rafId);

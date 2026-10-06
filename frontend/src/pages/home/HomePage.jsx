@@ -17,14 +17,7 @@ import { About } from "@features/about";
 import { TheLoop } from "@features/the-loop";
 import { Events } from "@features/events-showcase";
 import { Contact } from "@features/contact";
-import { ScrollSequence } from "@shared/ui";
 import useLenis from "@shared/hooks/useLenis";
-
-const REEL_FRAME_COUNT = 76;
-const REEL_FRAMES = Array.from(
-  { length: REEL_FRAME_COUNT },
-  (_, i) => `/genesis-frame/frame_${String(i).padStart(4, "0")}.webp`,
-);
 
 /**
  * Marketing landing — chrome + feature sections.
@@ -62,25 +55,9 @@ export default function HomePage() {
       <ChapterRail />
       <Navbar />
       <main className="relative">
-        {/* Progress-bar runway: landing → past About (2nd section).
-            When this wrapper's bottom hits the viewport, the bar is full
-            and the sequence pops / plays. */}
-        <div data-seq-trigger>
-          <Hero />
-          <Marquee />
-          <About />
-        </div>
-        <ScrollSequence
-          frames={REEL_FRAMES}
-          trigger="[data-seq-trigger]"
-          reveal="[data-seq-reveal]"
-          revealHeading="[data-seq-reveal-heading]"
-          revealBody="[data-seq-reveal-body]"
-          revealFrame={50}
-          loopStart={10}
-          loopEnd={48}
-          fps={45}
-        />
+        <Hero />
+        <Marquee />
+        <About />
         <TheLoop />
         {/* Light band after The Loop — Events + Contact. Footer stays dark. */}
         <div

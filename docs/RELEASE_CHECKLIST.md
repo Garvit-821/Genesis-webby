@@ -7,6 +7,24 @@
 - [ ] No secrets, local paths, debug logs, generated build output, or backup assets are committed.
 - [ ] New dependencies and assets are justified.
 
+## Facts and content
+
+- [ ] Numbers, contact details and event facts come from `shared/config/site.js`, not hard-coded copy.
+- [ ] Upcoming and past events are labelled correctly (nothing that has ended says "registrations open").
+- [ ] Partner events show the role Genesis played.
+- [ ] No placeholder text, stock photos presented as event photos, or unsourced claims.
+
+## SEO
+
+- [ ] Every new route is in `shared/config/routes.json`.
+- [ ] `npm run build` writes `build/<route>.html`, `404.html`, `sitemap.xml` and `llms.txt`.
+- [ ] Unknown URLs return HTTP 404 on a preview deployment (`curl -sI <preview>/does-not-exist`).
+
+## Forms
+
+- [ ] A test submission from each changed form lands in Supabase (Table Editor views) and, if configured, in Google Sheets.
+- [ ] Error states show a working email fallback.
+
 ## Functional
 
 - [ ] `/`, `/gallery`, and `/events` load directly and through navigation.

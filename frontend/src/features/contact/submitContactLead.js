@@ -1,83 +1,25 @@
 /**
- * Contact lead submission — production path with graceful degradation.
- *
- * Order:
- * 1. POST /api/contact (Vercel serverless when deployed)
- * 2. POST ${REACT_APP_BACKEND_URL}/api/contact
- * 3. Formspree if REACT_APP_FORMSPREE_ID is set
- * 4. Caller falls back to mailto:
+ * Contact helpers. The address comes from shared/config/site.js, the
+ * one place the site's email is defined (audit D01).
  */
 
-const CONTACT_EMAIL = "hello@genesishacks.in";
+import { CONTACT } from "@shared/config/site";
 
-function endpoints() {
-  const list = [];
-  if (typeof window !== "undefined") {
-    list.push("/api/contact");
-  }
-  const backend = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
-  if (backend) list.push(`${backend}/api/contact`);
-  const formspreeId = process.env.REACT_APP_FORMSPREE_ID;
-  if (formspreeId && !formspreeId.startsWith("%")) {
-    list.push(`https://formspree.io/f/${formspreeId}`);
-  }
-  return list;
+const CONTACT_EMAIL = CONTACT.email;
+
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+export function isValidEmail(value) {
+  return EMAIL_PATTERN.test(String(value || "").trim());
 }
 
-export function buildMailtoHref({ name, email, role, message }) {
-  const subject = encodeURIComponent(`Genesis enquiry — ${role} — ${name}`);
+/** mailto: link with the visitor's message prefilled, used when a submit fails. */
+export function buildMailtoHref({ name = "", email = "", role = "", message = "", subject } = {}) {
+  const subj = encodeURIComponent(subject || `Genesis enquiry${role ? `: ${role}` : ""}${name ? ` (${name})` : ""}`);
   const body = encodeURIComponent(
-    `Name: ${name}\nEmail: ${email}\nI am a: ${role}\n\n${message}\n\n— Sent via genesis.in`,
+    `Name: ${name}\nEmail: ${email}${role ? `\nReaching out as: ${role}` : ""}\n\n${message}\n\nSent from genesishacks.com`,
   );
-  return `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+  return `mailto:${CONTACT_EMAIL}?subject=${subj}&body=${body}`;
 }
 
 export { CONTACT_EMAIL };
-
-/**
- * @returns {Promise<{ ok: true } | { ok: false, reason: string }>}
- */
-export async function submitContactLead(payload) {
-  const body = {
-    name: payload.name?.trim(),
-    email: payload.email?.trim(),
-    role: payload.role,
-    message: payload.message?.trim(),
-    source: "genesis-web-contact",
-    submittedAt: new Date().toISOString(),
-  };
-
-  if (!body.name || !body.email || !body.message) {
-    return { ok: false, reason: "missing_fields" };
-  }
-
-  const targets = endpoints();
-  let lastReason = "no_endpoint";
-
-  for (const url of targets) {
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (res.ok) return { ok: true };
-
-      // 404/501/503 → try next provider
-      if (res.status === 404 || res.status === 501 || res.status === 503) {
-        lastReason = `unavailable_${res.status}`;
-        continue;
-      }
-
-      lastReason = `http_${res.status}`;
-    } catch {
-      lastReason = "network";
-    }
-  }
-
-  return { ok: false, reason: lastReason };
-}

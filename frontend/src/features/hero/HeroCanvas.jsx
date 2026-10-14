@@ -11,7 +11,7 @@ import {
 } from "@infra/performance";
 import { createPlayGate } from "@infra/performance/utils/createPlayGate";
 
-export default function HeroCanvas() {
+export default function HeroCanvas({ className = "", entryDelayMs = 2100 }) {
   const mountRef = useRef(null);
   const [webglFailed, setWebglFailed] = useState(false);
 
@@ -111,7 +111,7 @@ export default function HeroCanvas() {
     let entryStartTime = null;
     let startY = -7;
     const pageStartTime = performance.now();
-    const ENTRY_DELAY_MS = 2100;
+    const ENTRY_DELAY_MS = entryDelayMs;
     const ENTRY_DURATION_MS = 1200;
     const REST_Y = -0.15;
 
@@ -364,26 +364,21 @@ export default function HeroCanvas() {
         container.removeChild(renderer.domElement);
       }
     };
+    // Mount-only: the scene is built once; entryDelayMs is read on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (webglFailed) {
     return (
-      <div
-        className="pointer-events-none absolute bottom-[-20px] left-1/2 z-[5] flex h-[420px] w-full max-w-[1150px] -translate-x-1/2 items-end justify-center pb-16 md:h-[560px]"
-        role="img"
-        aria-label="3D hero preview unavailable"
-      >
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/35">
-          3D preview unavailable on this device
-        </p>
-      </div>
+      <div aria-hidden="true" className={`pointer-events-none ${className}`} />
     );
   }
 
   return (
     <div
       ref={mountRef}
-      className="absolute bottom-[-20px] left-1/2 -translate-x-1/2 w-full max-w-[1150px] h-[850px] md:h-[1000px] z-[5] pointer-events-none"
+      aria-hidden="true"
+      className={`pointer-events-none ${className}`}
     />
   );
 }

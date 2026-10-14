@@ -1,333 +1,334 @@
 import React from "react";
-import LegalPage from "../shared/LegalPage";
+import { Link } from "react-router-dom";
+import LegalPage, { Callout, DataTable, List } from "../shared/LegalPage";
+import { BRAND, CONTACT, DELHI, PUNE, SITE_URL } from "@shared/config/site";
+
+/*
+ * Privacy policy under India's Digital Personal Data Protection Act, 2023.
+ *
+ * NEEDS INPUT before legal sign-off (audit G01, G05):
+ *   - Registered legal entity name and type (company, LLP, proprietorship).
+ *   - Registered postal address and city.
+ *   - Named Grievance Officer (a person, not only an inbox).
+ *   - Retention periods (proposed below: 24 months for enquiries, 12 months
+ *     for uploaded decks). Supabase's purge function defaults to 24 months;
+ *     uploaded decks need their own clean-up job.
+ * Have a lawyer review this page before outreach relies on it.
+ */
+
+const LAST_UPDATED = "13 October 2026";
+const DOMAIN = SITE_URL.replace(/^https?:\/\//, "");
+
+const FORMS = [
+  ["Contact (home page and /contact)", "Name, email, who you are reaching out as, your message", "To reply to you"],
+  [
+    "Partner or sponsor (/partner)",
+    "Name, email, phone or WhatsApp (optional), company or college, website, partnership type, goals, event of interest, budget band, timeline, your message, and an optional deck (PDF or PowerPoint, up to 3 MB)",
+    "To understand and answer a sponsorship or partnership enquiry",
+  ],
+  [
+    "Collaborate (/collaborate)",
+    "Name, email, phone or WhatsApp (optional), organisation or event, type of collaboration, website, your message",
+    "To discuss co-hosting, judging, mentoring or listing your event",
+  ],
+  [
+    "Join the crew (/careers)",
+    "Name, email, phone, the area you want to work in, experience, portfolio link, your message",
+    "To consider you for volunteer or paid work at our events",
+  ],
+  [
+    `${DELHI.name} interest (${DELHI.path})`,
+    "Name, email, phone, college or organisation, city, tracks you care about, whether you have a team",
+    `To tell you when registration for ${DELHI.name} opens`,
+  ],
+  [
+    `Certificates (${PUNE.certificatePath})`,
+    "The email and phone you registered with",
+    "To check them against the participant list and issue your certificate. We do not keep a copy of what you type",
+  ],
+];
+
+const PROCESSORS = [
+  ["Vercel", "Hosts the website and runs the server functions that receive forms", "May process data outside India"],
+  ["Supabase", "Database and private file storage for form submissions and uploaded decks", "May process data outside India"],
+  ["Google (Workspace, Sheets, Drive)", "Team email and a working copy of form submissions", "May process data outside India"],
+  ["Hostinger", `Hosts the mailbox for ${CONTACT.email}`, "Email provider for our domain"],
+  ["Resend", "Sends the team a notification email when a form arrives (if enabled)", "May process data outside India"],
+  ["PostHog", "Optional analytics, only after you click Accept", "May process data outside India"],
+];
 
 const SECTIONS = [
   {
-    id: "overview",
-    title: "Who We Are & Overview",
+    id: "who-we-are",
+    title: "Who we are",
     content: (
       <>
         <p>
-          Genesis (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) is a developer community platform operated
-          by <strong>Genesis Hacks</strong>, based in India. We operate the website at{" "}
-          <strong>genesishacks.in</strong> (the &quot;Site&quot;).
+          {BRAND.name} (&ldquo;Genesis&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;) runs the website at{" "}
+          <strong>{DOMAIN}</strong>. {BRAND.description}
         </p>
         <p>
-          This Privacy Policy explains what personal information we collect, how
-          we use it, who we share it with, and the choices you have regarding
-          your data. We are committed to handling your information with
-          transparency, care, and respect.
+          For the purposes of the Digital Personal Data Protection Act, 2023 (the &ldquo;DPDP Act&rdquo;), Genesis Hacks
+          decides why and how the personal data described here is used, so we are the Data Fiduciary for it. You are the
+          Data Principal.
         </p>
-        <div className="legal-callout">
-          <strong>The short version:</strong> We collect only what we need, we
-          don&apos;t sell your data, and we give you control over what you share with
-          us.
-        </div>
+        <Callout>
+          <strong>The short version.</strong> We collect what you type into our forms so we can reply to you, we never
+          sell it, analytics stay off unless you accept them, and you can ask us to see, correct or delete your data at
+          any time by writing to <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "what-we-collect",
+    title: "What we collect, form by form",
+    content: (
+      <>
+        <p>We only collect what each form asks for. Fields marked optional on a form can be left empty.</p>
+        <DataTable
+          caption="Personal data collected by each form"
+          columns={["Form", "What it collects", "Why"]}
+          rows={FORMS}
+        />
+        <h3>Collected automatically</h3>
+        <List>
+          <li>
+            <strong>Security and spam control.</strong> When you send a form we store a one-way, salted hash of your IP
+            address and your browser&rsquo;s user agent, so we can block repeated or automated submissions. We cannot
+            turn the hash back into your IP address.
+          </li>
+          <li>
+            <strong>Server logs.</strong> Our hosting provider keeps short-lived technical logs (IP address, time,
+            page requested) to run and protect the site.
+          </li>
+          <li>
+            <strong>Analytics, only with your consent.</strong> If you click Accept on the cookie banner, PostHog
+            records the pages you visit, device type, approximate region and where you came from. If you click Reject,
+            or do nothing, no analytics load.
+          </li>
+        </List>
         <p>
-          Because we don&apos;t sell your data and we&apos;ve designed our platform with data minimisation in mind, we satisfy these requirements by default. However, if you are a California resident and wish to submit a formal opt-out or disclosure request, you may do so by contacting us with the subject line &quot;CCPA Request&quot;.
-        </p>
-        <p>
-          We do not discriminate against any user for exercising their privacy rights.
+          We do not ask for sensitive information such as financial details, health data or identity documents through
+          this site. Please do not include them in a message or upload.
         </p>
       </>
     ),
   },
   {
-    id: "information-collected",
-    title: "Information We Collect",
+    id: "why-and-legal-basis",
+    title: "Why we use it, and on what basis",
     content: (
       <>
+        <p>We use your personal data to:</p>
+        <List>
+          <li>reply to your message or enquiry and keep the conversation going;</li>
+          <li>assess sponsorship, partnership and collaboration requests and match them to events;</li>
+          <li>tell you about the event you registered interest in, such as {DELHI.name};</li>
+          <li>consider crew applications;</li>
+          <li>issue certificates to registered participants;</li>
+          <li>keep the site secure and free of spam; and</li>
+          <li>with your consent, understand which pages are useful.</li>
+        </List>
         <p>
-          We collect information in the following ways:
+          <strong>Consent.</strong> Sending a form is a clear, affirmative act: you give us your data for the purpose
+          shown on that form. Analytics run only on your separate consent through the cookie banner.
         </p>
         <p>
-          <strong>Information you provide directly.</strong> When you submit our
-          contact form, you provide your name, email address, role or affiliation,
-          and a message. We use this solely to respond to your enquiry and, where
-          relevant, to follow up with you about Genesis events and opportunities.
+          <strong>Legitimate uses.</strong> Some processing relies on the legitimate uses allowed by section 7 of the
+          DPDP Act, for example using data you gave us voluntarily for the purpose you gave it, or keeping records a
+          law requires us to keep.
         </p>
         <p>
-          <strong>Information collected automatically.</strong> When you visit the
-          Site, we may automatically collect:
-        </p>
-        <ul className="legal-list">
-          <li>Pages visited and approximate time spent on each page</li>
-          <li>Device class (desktop / mobile) and browser type</li>
-          <li>Geographic region (country / state level — not precise location)</li>
-          <li>Referral source (how you found us)</li>
-        </ul>
-        <p>
-          This data is collected only if you have provided your explicit consent
-          through our cookie banner. We do not collect this data without your
-          consent.
-        </p>
-        <p>
-          <strong>Information from third parties.</strong> If you register for a
-          Genesis event on a third-party platform (such as Luma), we may receive
-          anonymised or aggregated attendance statistics from that platform. We do
-          not receive your personal registration data from these third parties.
+          We do not sell personal data, we do not use it for advertising, and we do not make automated decisions about
+          you.
         </p>
       </>
     ),
   },
   {
-    id: "how-we-use",
-    title: "How We Use Your Information",
+    id: "sharing",
+    title: "Who we share it with",
     content: (
       <>
-        <p>We use the information we collect for the following purposes:</p>
-        <ul className="legal-list">
-          <li>
-            <strong>To respond to your enquiries</strong> — Contact form
-            submissions are used solely to reply to and assist you.
-          </li>
-          <li>
-            <strong>To improve the Site</strong> — Aggregated, anonymised
-            analytics help us understand which content is most useful and how to
-            improve the experience.
-          </li>
-          <li>
-            <strong>To communicate about Genesis events</strong> — If you&apos;ve
-            contacted us and expressed interest in our community, we may
-            occasionally send you relevant updates. You can opt out at any time.
-          </li>
-          <li>
-            <strong>To comply with legal obligations</strong> — We may retain or
-            disclose data when required by applicable law.
-          </li>
-        </ul>
         <p>
-          We do not use your data for automated decision-making, profiling, or
-          targeted advertising.
+          A small number of service providers (Data Processors) handle data on our behalf, under contract and only to
+          provide their service to us:
         </p>
+        <DataTable
+          caption="Service providers that process personal data for Genesis Hacks"
+          columns={["Provider", "What it does for us", "Note"]}
+          rows={PROCESSORS}
+        />
+        <p>
+          Some of these providers store data outside India. The DPDP Act allows this unless the Government of India
+          restricts transfers to a particular country, and we will follow any such restriction.
+        </p>
+        <p>
+          We share your details with a sponsor or event partner only when you ask us to (for example, to make an
+          introduction) or when you agreed to it on an event&rsquo;s own registration form. If you register for an
+          event on another platform, such as HackCulture or Luma, that platform&rsquo;s privacy policy applies to the
+          data you give it.
+        </p>
+        <p>We may also disclose data if the law requires it, or to protect our rights or someone&rsquo;s safety.</p>
       </>
     ),
   },
   {
-    id: "analytics",
-    title: "Analytics & Cookies",
+    id: "retention",
+    title: "How long we keep it",
     content: (
       <>
+        <List>
+          <li>
+            <strong>Enquiries</strong> (contact, partner, collaborate, crew applications, event interest): up to 24
+            months after our last exchange with you, then deleted.
+          </li>
+          <li>
+            <strong>Uploaded decks and files:</strong> up to 12 months, then deleted.
+          </li>
+          <li>
+            <strong>Certificate checks:</strong> not stored. The participant list itself is kept as one-way hashes of
+            each registered email and phone pair.
+          </li>
+          <li>
+            <strong>Analytics:</strong> kept by PostHog in line with its retention settings, and only if you accepted.
+          </li>
+        </List>
         <p>
-          We use <strong>PostHog</strong> for privacy-respecting analytics. PostHog
-          is configured with the following restrictions:
-        </p>
-        <ul className="legal-list">
-          <li>Session recording is <strong>disabled</strong></li>
-          <li>Analytics only loads after you explicitly accept via our cookie banner</li>
-          <li>No personal identifiers are sent to PostHog</li>
-          <li>IP addresses are anonymised before processing</li>
-          <li>We do not use third-party advertising cookies or tracking pixels</li>
-        </ul>
-        <p>
-          <strong>Cookie types we use:</strong>
-        </p>
-        <ul className="legal-list">
-          <li>
-            <strong>Strictly necessary cookies</strong> — Required for the Site to
-            function. These cannot be disabled.
-          </li>
-          <li>
-            <strong>Analytics cookies</strong> — Loaded only with your consent.
-            Used to understand aggregated site usage.
-          </li>
-        </ul>
-        <div className="legal-callout">
-          You can withdraw your analytics consent at any time by clearing site
-          data for this domain in your browser settings and reloading the page.
-          The cookie banner will reappear and you can choose your preference again.
-        </div>
-      </>
-    ),
-  },
-  {
-    id: "data-sharing",
-    title: "Data Sharing & Disclosure",
-    content: (
-      <>
-        <p>
-          We do not sell, trade, rent, or otherwise transfer your personal
-          information to third parties for commercial purposes. Period.
-        </p>
-        <p>We may share your information only in the following circumstances:</p>
-        <ul className="legal-list">
-          <li>
-            <strong>Service providers:</strong> We use PostHog (analytics) and
-            may use email infrastructure providers to respond to contact form
-            submissions. These providers process data only as directed by us and
-            under strict confidentiality obligations.
-          </li>
-          <li>
-            <strong>Legal requirements:</strong> We may disclose your information
-            if required to do so by law, court order, or governmental authority,
-            or if we believe disclosure is necessary to protect rights, property,
-            or safety.
-          </li>
-          <li>
-            <strong>Business transfers:</strong> In the unlikely event of a merger
-            or acquisition, your information may be transferred as part of that
-            transaction. We will provide notice in such an event.
-          </li>
-        </ul>
-      </>
-    ),
-  },
-  {
-    id: "data-retention",
-    title: "Data Retention",
-    content: (
-      <>
-        <p>
-          We don&apos;t sell your personal information. We share it only as necessary to provide our services, comply with legal obligations, or protect rights and safety:
-        </p>
-        <ul className="legal-list">
-          <li>
-            <strong>Contact form data</strong> — Retained for the duration of
-            your communication with us and any reasonable follow-up period (up to
-            12 months), then deleted or securely archived.
-          </li>
-          <li>
-            <strong>Analytics data</strong> — Aggregated, anonymised analytics
-            data may be retained indefinitely as it contains no personal
-            information. Raw event data in PostHog is subject to PostHog&apos;s own
-            retention policies.
-          </li>
-        </ul>
-        <p>
-          You may request deletion of your personal data at any time. See
-          &quot;Your Rights&quot; below.
+          We delete data sooner if you ask us to and no law requires us to keep it, or once the purpose you gave it for
+          is complete.
         </p>
       </>
     ),
   },
   {
     id: "your-rights",
-    title: "Your Rights",
+    title: "Your rights",
     content: (
       <>
+        <p>Under the DPDP Act you can:</p>
+        <List>
+          <li>ask for a summary of the personal data we hold about you and how we use it;</li>
+          <li>ask us to correct, complete or update it;</li>
+          <li>ask us to erase it;</li>
+          <li>withdraw your consent at any time;</li>
+          <li>have a grievance about our handling of your data addressed; and</li>
+          <li>nominate another person to exercise these rights for you if you die or become unable to.</li>
+        </List>
         <p>
-          Depending on your location, you may have certain rights regarding your
-          personal information. These include:
+          To use any of these rights, email <a href={`mailto:${CONTACT.email}?subject=Data%20request`}>{CONTACT.email}</a>{" "}
+          with the subject &ldquo;Data request&rdquo;. We reply {CONTACT.replyTime}. We may ask you to confirm it is
+          really you before we act.
         </p>
-        <ul className="legal-list">
-          <li>
-            <strong>Right of access</strong> — Request a copy of the personal
-            data we hold about you.
-          </li>
-          <li>
-            <strong>Right to rectification</strong> — Request correction of
-            inaccurate or incomplete data.
-          </li>
-          <li>
-            <strong>Right to erasure</strong> — Request deletion of your personal
-            data, subject to certain legal exceptions.
-          </li>
-          <li>
-            <strong>Right to restrict processing</strong> — Request that we
-            limit how we use your data in certain circumstances.
-          </li>
-          <li>
-            <strong>Right to withdraw consent</strong> — Withdraw consent for
-            analytics at any time by clearing your browser&apos;s site data.
-          </li>
-        </ul>
         <p>
-          To exercise any of these rights, please email us at{" "}
-          <a href="mailto:hello@genesishacks.in">hello@genesishacks.in</a>. We will respond
-          within 30 days. We may need to verify your identity before processing
-          certain requests.
+          If you are not satisfied with our response, you can complain to the Data Protection Board of India.
         </p>
       </>
     ),
   },
   {
-    id: "security",
-    title: "Data Security",
+    id: "consent-and-cookies",
+    title: "Withdrawing consent and cookies",
     content: (
       <>
         <p>
-          We implement reasonable technical and organisational measures to protect
-          your personal information against unauthorised access, alteration,
-          disclosure, or destruction. These measures include:
+          Withdrawing consent is as easy as giving it. Use <strong>Cookie settings</strong> at the bottom of any page to
+          change your analytics choice, or email us to withdraw consent for anything else. Withdrawal does not affect
+          processing that already happened.
         </p>
-        <ul className="legal-list">
-          <li>HTTPS encryption for all data in transit</li>
-          <li>Access controls limiting who can view collected data</li>
-          <li>Regular review of our data collection and processing practices</li>
-          <li>Use of reputable, security-audited third-party processors</li>
-        </ul>
-        <p>
-          However, no method of transmission over the internet or method of
-          electronic storage is 100% secure. While we strive to use commercially
-          acceptable means to protect your data, we cannot guarantee absolute
-          security. If you have concerns about a specific data security matter,
-          please contact us immediately.
-        </p>
+        <p>The site stores a few small items in your browser:</p>
+        <List>
+          <li>
+            <strong>Your consent choice</strong> (essential), so we remember whether you accepted or rejected
+            analytics.
+          </li>
+          <li>
+            <strong>Intro seen</strong> (essential, this browser session only), so the opening animation plays once.
+          </li>
+          <li>
+            <strong>PostHog cookies and storage</strong>, only after you click Accept.
+          </li>
+        </List>
       </>
     ),
   },
   {
     id: "children",
-    title: "Children&apos;s Privacy",
+    title: "Children’s data",
     content: (
       <>
         <p>
-          The Site is not directed to children under the age of 13. We do not
-          knowingly collect personal information from children under 13. If you
-          are a parent or guardian and believe your child has provided us with
-          personal information, please contact us at{" "}
-          <a href="mailto:hello@genesishacks.in">hello@genesishacks.in</a> and we will
-          promptly delete such data.
+          The DPDP Act treats anyone under 18 as a child, and processing a child&rsquo;s data needs verifiable consent
+          from a parent or lawful guardian.
+        </p>
+        <List>
+          <li>
+            The forms on this site are meant for adults. If you are under 18, please ask a parent or guardian to contact
+            us for you.
+          </li>
+          <li>
+            Registration for student events such as Hackers Occupied needs verifiable consent from a parent or guardian
+            for any participant under 18.
+          </li>
+          <li>We do not track children, monitor their behaviour or show them targeted advertising.</li>
+          <li>
+            If we learn that we hold a child&rsquo;s data without that consent, we delete it. Parents and guardians can
+            write to <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a> at any time.
+          </li>
+        </List>
+      </>
+    ),
+  },
+  {
+    id: "security",
+    title: "How we protect it",
+    content: (
+      <>
+        <List>
+          <li>The whole site runs over HTTPS.</li>
+          <li>
+            Form submissions and decks are stored in a private database and a private storage bucket that the public
+            cannot read. Only our server functions hold the access key, and it never reaches your browser.
+          </li>
+          <li>IP addresses are stored only as salted hashes.</li>
+          <li>Access to submissions is limited to the Genesis team members who need it.</li>
+        </List>
+        <p>
+          No system is perfectly secure. If a breach affects your personal data, we will inform you and the Data
+          Protection Board of India as the DPDP Act requires.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: "grievance-officer",
+    title: "Grievance Officer and contact",
+    content: (
+      <>
+        {/* NEEDS INPUT: the Grievance Officer's name, and the registered postal address of the legal entity. */}
+        <p>
+          <strong>Grievance Officer, Genesis Hacks</strong>
+          <br />
+          Email: <a href={`mailto:${CONTACT.email}?subject=Grievance`}>{CONTACT.email}</a>
+          <br />
+          Phone: <a href={CONTACT.phoneHref}>{CONTACT.phone}</a>
         </p>
         <p>
-          Participants in Genesis hackathons and events who are minors should
-          obtain parental or guardian consent before registering.
+          We reply to every grievance {CONTACT.replyTime} and keep you updated until it is resolved. See also our{" "}
+          <Link to="/terms">terms of service</Link>.
         </p>
       </>
     ),
   },
   {
     id: "changes",
-    title: "Changes to This Policy",
+    title: "Changes to this policy",
     content: (
-      <>
-        <p>
-          We may update this Privacy Policy from time to time to reflect changes
-          in our practices, technology, legal requirements, or other factors. When
-          we do, we will update the &quot;Last updated&quot; date at the top of this page.
-        </p>
-        <p>
-          For significant changes, we will endeavour to provide more prominent
-          notice (such as a banner on the Site). We encourage you to review this
-          policy periodically. Your continued use of the Site after changes are
-          posted constitutes your acceptance of the revised policy.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: "contact",
-    title: "Contact & Data Requests",
-    content: (
-      <>
-        <p>
-          If you have questions, concerns, or requests regarding this Privacy
-          Policy or your personal data, please contact us:
-        </p>
-        <ul className="legal-list">
-          <li>
-            Email: <a href="mailto:[EMAIL_ADDRESS]">[EMAIL_ADDRESS]</a>
-          </li>
-          <li>
-            Subject line: &quot;Genesis Privacy Query&quot;
-          </li>
-          <li>Website: genesis.in</li>
-          <li>Operated by: Genesis, India</li>
-        </ul>
-        <p>
-          We will confirm receipt of your request within 10 business days and respond substantively within 30 days. If we require additional time, we will inform you of the reason and extension period. We may request proof of identity to ensure we are acting on the data subject&apos;s request.
-        </p>
-      </>
+      <p>
+        When we change this policy we update the date at the top of the page. If a change affects how we use data you
+        already gave us, we will tell you before it takes effect and ask for consent again where the law requires it.
+      </p>
     ),
   },
 ];
@@ -336,8 +337,10 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       type="privacy"
+      title="Privacy policy"
+      intro="What we collect through this site, why, who helps us process it, and how to see, correct or delete your data."
       sections={SECTIONS}
-      lastUpdated="20 July 2026"
+      lastUpdated={LAST_UPDATED}
     />
   );
 }

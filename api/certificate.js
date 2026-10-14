@@ -4,6 +4,10 @@
  *
  * Participant tables live in api/_data/<event>.json and are generated from the
  * CSV by `npm run build:certificates` in frontend/.
+ *
+ * Privacy (audit D11): a wrong pair and a malformed pair get the same
+ * answer, so the endpoint cannot be used to learn who attended. Attempts
+ * are throttled per IP.
  */
 
 const crypto = require("crypto");
@@ -13,24 +17,38 @@ const EVENTS = {
   "hackers-occupied-pune": () => require("./_data/hackers-occupied-pune.json"),
 };
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Accept",
-};
+const ALLOWED_ORIGINS = new Set(["https://www.genesishacks.com", "https://genesishacks.com"]);
+const DEV_ORIGIN_RE = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
-function json(res, status, data) {
+const NOT_VERIFIED = { ok: false, error: "not_verified", message: "We could not verify those details." };
+
+function json(req, res, status, data) {
   res.statusCode = status;
-  Object.entries(CORS).forEach(([k, v]) => res.setHeader(k, v));
+  const origin = String((req.headers && req.headers.origin) || "");
+  if (ALLOWED_ORIGINS.has(origin) || DEV_ORIGIN_RE.test(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Vary", "Origin");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept");
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Cache-Control", "no-store");
-  res.end(JSON.stringify(data));
+  res.end(status === 204 ? "" : JSON.stringify(data));
 }
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
-    if (req.body && typeof req.body === "object") {
-      resolve(req.body);
+    const body = req.body;
+    if (body && typeof body === "object" && !Buffer.isBuffer(body)) {
+      resolve(body);
+      return;
+    }
+    if (typeof body === "string" || Buffer.isBuffer(body)) {
+      try {
+        resolve(body.length ? JSON.parse(String(body)) : {});
+      } catch {
+        reject(new Error("invalid_json"));
+      }
       return;
     }
     let raw = "";
@@ -73,12 +91,12 @@ function throttled(ip) {
 
 module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") {
-    json(res, 204, {});
+    json(req, res, 204, null);
     return;
   }
 
   if (req.method !== "POST") {
-    json(res, 405, { ok: false, error: "method_not_allowed" });
+    json(req, res, 405, { ok: false, error: "method_not_allowed" });
     return;
   }
 
@@ -86,36 +104,38 @@ module.exports = async function handler(req, res) {
     .split(",")[0]
     .trim();
   if (throttled(ip)) {
-    json(res, 429, { ok: false, error: "too_many_attempts" });
+    json(req, res, 429, {
+      ok: false,
+      error: "too_many_attempts",
+      message: "Too many attempts. Please try again in a few minutes.",
+    });
     return;
   }
 
   let payload;
   try {
     payload = await readBody(req);
-  } catch (err) {
-    json(res, 400, { ok: false, error: err.message || "bad_request" });
+  } catch {
+    json(req, res, 400, NOT_VERIFIED);
     return;
   }
 
   const loadEvent = EVENTS[String(payload.event || "")];
   if (!loadEvent) {
-    json(res, 404, { ok: false, error: "unknown_event" });
+    json(req, res, 404, { ok: false, error: "unknown_event" });
     return;
   }
 
   const email = normEmail(payload.email);
   const phone = normPhone(payload.phone);
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || phone.length !== 10) {
-    json(res, 400, { ok: false, error: "validation_failed" });
-    return;
-  }
+  const wellFormed = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && phone.length === 10;
+  const name = wellFormed ? loadEvent()[keyFor(email, phone)] : null;
 
-  const name = loadEvent()[keyFor(email, phone)];
+  // Same status and body for "malformed" and "no match" (audit D11).
   if (!name) {
-    json(res, 404, { ok: false, error: "not_found" });
+    json(req, res, 404, NOT_VERIFIED);
     return;
   }
 
-  json(res, 200, { ok: true, name });
+  json(req, res, 200, { ok: true, name });
 };

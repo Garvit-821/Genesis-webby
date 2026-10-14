@@ -1,356 +1,241 @@
 import React, { useState } from "react";
-import Navbar from "@/widgets/layout/Navbar";
-import Footer from "@/widgets/layout/Footer";
+import { AnimatePresence, motion } from "framer-motion";
+import { PageShell, PageHero } from "@widgets/layout";
+import { CONTACT, DELHI } from "@shared/config/site";
+import { EASE_OUT, Magnetic, Reveal, useMediaQuery } from "@shared/motion";
 import WorkWithUsForm from "@/features/forms/WorkWithUsForm";
+import useHashScroll, { scrollToId } from "@/features/forms/useHashScroll";
 
-const STATS = [
-  { label: "Hackers Reached", value: "100K+" },
-  { label: "Campus Chapters", value: "50+" },
-  { label: "Remote Flexibility", value: "100%" },
-  { label: "Sheet Sync Response", value: "< 24h" },
+/**
+ * Areas people can help with. Plain descriptions of the work; no
+ * employment type, pay or perks are claimed (audit C17).
+ */
+const AREAS = [
+  {
+    value: "events",
+    title: "Event operations",
+    line: "Venues, run of show, check-in, food, Wi-Fi and the hundred small things that make a hackathon work on the day.",
+    youWill: ["Plan schedules and floor layouts", "Run check-in and help desks", "Keep the event on time"],
+  },
+  {
+    value: "partnerships",
+    title: "Partnerships",
+    line: "Find sponsors, write proposals and look after partners before, during and after an event.",
+    youWill: ["Research companies that fit an event", "Draft proposals and follow up", "Be the sponsor's contact on the day"],
+  },
+  {
+    value: "design",
+    title: "Design",
+    line: "Event identities, posters, decks, stage graphics and the website you are on.",
+    youWill: ["Design event branding", "Make social and print assets", "Work on genesishacks.com"],
+  },
+  {
+    value: "engineering",
+    title: "Engineering",
+    line: "Internal tools like the certificate download, the forms that reach our team, and this website.",
+    youWill: ["Build and fix internal tools", "Ship website features", "Keep forms and data safe"],
+  },
+  {
+    value: "community",
+    title: "Community and campus",
+    line: "Bring builders from your college to events and help first-timers find a team.",
+    youWill: ["Share events on your campus", "Help run meetups", "Welcome first-time hackers"],
+  },
 ];
 
-const CULTURE_VALUES = [
-  {
-    num: "01",
-    title: "High Impact Ownership",
-    desc: "You won't be building meaningless boilerplate. You will build platforms, tools, and hackathons experienced by thousands of builders worldwide."
-  },
-  {
-    num: "02",
-    title: "Hacker-First Spirit",
-    desc: "We value rapid prototyping, shipping early, bold experimentation, and technical curiosity far more than endless meetings."
-  },
-  {
-    num: "03",
-    title: "Remote & Asynchronous",
-    desc: "Work from wherever you are happiest. We trust our teammates to manage their time, focus on output, and communicate with clarity."
-  },
-  {
-    num: "04",
-    title: "Travel & Conference Perks",
-    desc: "Fly out to flagship hackathons, tech conferences, and team retreats across the country to connect directly with developer communities."
+function AreaDetail({ area, onApply }) {
+  return (
+    <div>
+      <p className="max-w-[46ch] text-xl leading-snug text-[var(--text)] md:text-2xl">{area.line}</p>
+      <p className="mt-8 font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)]">You might</p>
+      <ul className="mt-3 border-t border-[var(--border)]">
+        {area.youWill.map((w) => (
+          <li key={w} className="flex items-center gap-3 border-b border-[var(--border)] py-3 text-base text-[var(--text-dim)]">
+            <span aria-hidden className="h-1.5 w-1.5 shrink-0 bg-[var(--heading)]" />
+            {w}
+          </li>
+        ))}
+      </ul>
+      <button type="button" onClick={() => onApply(area.value)} className="btn-cinema mt-8">
+        Apply for {area.title.toLowerCase()} <span aria-hidden>→</span>
+      </button>
+    </div>
+  );
+}
+
+/** Desktop: hover or focus a name to swap the panel. Mobile: stacked cards. */
+function Areas({ onApply }) {
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const [active, setActive] = useState(0);
+
+  if (!isDesktop) {
+    return (
+      <ul className="space-y-4">
+        {AREAS.map((area, i) => (
+          <Reveal as="li" key={area.value} delay={i * 0.05} className="border border-[var(--border)] p-6">
+            <h3 className="font-display text-[2rem] leading-none text-[var(--heading)]">{area.title}</h3>
+            <div className="mt-5">
+              <AreaDetail area={area} onApply={onApply} />
+            </div>
+          </Reveal>
+        ))}
+      </ul>
+    );
   }
-];
 
-const PERKS = [
-  { icon: "💻", title: "Tech Setup Allowance", desc: "Stipend for your laptop, monitors, and ergonomic home office gear." },
-  { icon: "✈️", title: "Hackathon Travel", desc: "All expenses covered when attending or hosting Genesis flagship hackathons." },
-  { icon: "📚", title: "Learning & Books", desc: "Reimbursements for developer courses, technical books, and subscriptions." },
-  { icon: "🌴", title: "Flexible PTO", desc: "Take time off when you need to recharge with zero guilt or micro-management." },
-  { icon: "⚡", title: "Internal Hack-Weeks", desc: "Dedicated sprints every quarter where you build whatever wild idea you want." },
-  { icon: "🤝", title: "Leadership Mentorship", desc: "Direct 1-on-1 growth track with founders, senior leads, and industry mentors." }
-];
-
-const OPEN_ROLES = [
-  {
-    id: "engineering-lead",
-    category: "engineering",
-    title: "Lead Fullstack & Systems Engineer",
-    type: "Full-Time",
-    location: "Remote (Global)",
-    desc: "Architect scalable web applications, real-time submission systems, and 3D interactive canvases powering Genesis platform services.",
-    tags: ["React", "Node.js", "TailwindCSS", "PostgreSQL"]
-  },
-  {
-    id: "design-principal",
-    category: "design",
-    title: "Principal UI/UX & Motion Designer",
-    type: "Full-Time",
-    location: "Remote (Global)",
-    desc: "Craft dark-mode glassmorphic visual identities, component design systems, motion graphics, and micro-interactions.",
-    tags: ["Figma", "UI/UX", "Three.js", "Design Systems"]
-  },
-  {
-    id: "logistics-head",
-    category: "community",
-    title: "Head of Hackathon Operations & Logistics",
-    type: "Full-Time / Season Lead",
-    location: "Hybrid (Pan-India)",
-    desc: "Lead physical and digital hackathon execution, venue partnerships, AV infrastructure, catering, and day-of run of show.",
-    tags: ["Ops", "Logistics", "Event Mgmt", "Sponsors"]
-  },
-  {
-    id: "campus-lead",
-    category: "campus",
-    title: "Genesis Campus Ambassador Lead",
-    type: "Student / Part-Time",
-    location: "Campus-Based",
-    desc: "Represent Genesis at your university, organize local student hacker meetups, and run campus workshops.",
-    tags: ["Community", "Leadership", "Workshops", "Campus"]
-  },
-  {
-    id: "dev-advocate",
-    category: "community",
-    title: "Developer Advocate & Content Lead",
-    type: "Full-Time",
-    location: "Remote (Global)",
-    desc: "Create technical tutorials, host mini-events, produce YouTube/Discord content, and engage developer communities.",
-    tags: ["DevRel", "Content", "Discord", "YouTube"]
-  },
-  {
-    id: "hackathon-coach",
-    category: "community",
-    title: "Technical Mentor & Hackathon Coach",
-    type: "Season Lead / Part-Time",
-    location: "Hybrid",
-    desc: "Mentor beginner hackers during 24-48 hour hackathons, troubleshoot project blockers, and guide judging sessions.",
-    tags: ["Mentorship", "Debugging", "Judging", "Coaching"]
-  }
-];
+  const current = AREAS[active];
+  return (
+    <div className="grid grid-cols-12 gap-12">
+      <ul className="col-span-6 border-t border-[var(--border-strong)]">
+        {AREAS.map((area, i) => {
+          const on = i === active;
+          return (
+            <li key={area.value} className="border-b border-[var(--border-strong)]">
+              <button
+                type="button"
+                aria-pressed={on}
+                aria-controls="area-panel"
+                onMouseEnter={() => setActive(i)}
+                onFocus={() => setActive(i)}
+                onClick={() => setActive(i)}
+                className="group flex w-full items-center justify-between gap-6 py-6 text-left"
+              >
+                <span
+                  className={`font-display text-[clamp(2.25rem,4vw,3.75rem)] leading-[0.95] transition-[color,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    on ? "translate-x-4 text-[var(--heading)]" : "text-white/45 group-hover:text-white/80"
+                  }`}
+                >
+                  {area.title}
+                </span>
+                <span
+                  aria-hidden
+                  className={`font-mono text-[13px] transition-colors ${on ? "text-[var(--heading)]" : "text-white/40"}`}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <div id="area-panel" aria-live="polite" className="sticky top-32 col-span-6 self-start">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={current.value}
+            initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -16, filter: "blur(6px)" }}
+            transition={{ duration: 0.5, ease: EASE_OUT }}
+            className="border border-[var(--border)] p-10"
+          >
+            <h3 className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--heading)]">{current.title}</h3>
+            <div className="mt-6">
+              <AreaDetail area={current} onApply={onApply} />
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
 
 export default function CareersPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState("engineering");
-  const [activeTab, setActiveTab] = useState("all");
+  useHashScroll();
+  const [area, setArea] = useState("");
 
-  const handleApplyClick = (roleCategory) => {
-    setSelectedRole(roleCategory || "engineering");
-    setIsFormOpen(true);
+  const applyFor = (value) => {
+    setArea(value);
+    window.setTimeout(() => {
+      scrollToId("apply");
+      document.getElementById("crew-name")?.focus({ preventScroll: true });
+    }, 60);
   };
 
-  const filteredRoles = activeTab === "all"
-    ? OPEN_ROLES
-    : OPEN_ROLES.filter(r => r.category === activeTab);
-
   return (
-    <div className="min-h-screen bg-[#181818] text-white flex flex-col selection:bg-white selection:text-black">
-      <Navbar />
-
-      {/* Hero Banner */}
-      <section className="relative pt-32 pb-20 px-4 sm:px-8 max-w-[90rem] mx-auto w-full overflow-hidden">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-[var(--brand)]/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-4xl space-y-6 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-mono text-[var(--brand)] uppercase tracking-wider">
-            <span className="w-2 h-2 rounded-full bg-[var(--brand)] animate-pulse" />
-            Connect / Work at Genesis
-          </div>
-
-          <h1 className="font-display text-4xl sm:text-6xl text-white uppercase tracking-tight leading-none">
-            Build the Future of <br />
-            <span className="text-[var(--brand)]">Hacker Ecosystems</span>
-          </h1>
-
-          <p className="text-lg sm:text-xl text-white/70 max-w-2xl font-light leading-relaxed">
-            We are a high-velocity, remote-first team of engineers, designers, hackathon operators, and community leads building platforms for the next generation of creators.
-          </p>
-
-          <div className="flex flex-wrap items-center gap-4 pt-4">
-            <button
-              type="button"
-              onClick={() => handleApplyClick("engineering")}
-              className="btn-cinema cursor-pointer"
-            >
-              Apply / General Submission →
-            </button>
-            <a href="#open-roles" className="btn-ghost">
-              Explore Open Roles ↓
+    <PageShell>
+      <PageHero
+        eyebrow="Join the crew"
+        title="Join the Genesis crew"
+        lines={["Join the", "crew."]}
+        intro={`Help run hackathons across India. Tell us what you want to work on and we reply ${CONTACT.replyTime}.`}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.7, ease: EASE_OUT }}
+          className="mt-10 flex flex-col gap-3 sm:flex-row"
+        >
+          <Magnetic strength={0.25}>
+            <a href="#apply" className="btn-cinema w-full justify-center sm:w-auto">
+              Apply now <span aria-hidden>↓</span>
             </a>
+          </Magnetic>
+          <a href="#areas" className="btn-ghost w-full justify-center sm:w-auto">
+            Areas of work
+          </a>
+        </motion.div>
+      </PageHero>
+
+      <section id="areas" aria-labelledby="areas-title" className="scroll-mt-28 border-t border-[var(--border)] px-5 py-24 md:px-12 md:py-32">
+        <div className="mx-auto max-w-[90rem]">
+          <div className="mb-14 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="block h-2 w-2 bg-[var(--heading)]" aria-hidden />
+                <span className="overline">Where you can help</span>
+              </div>
+              <h2 id="areas-title" className="mt-6 font-display text-[clamp(2.5rem,6vw,5.5rem)] leading-[0.9] text-[var(--heading)]">
+                Areas of work
+              </h2>
+            </div>
+            <p className="max-w-[44ch] text-lg leading-relaxed text-[var(--text-dim)]">
+              If there is a fit for an upcoming event, we set up a call and tell you what the work involves and how much time it takes.
+            </p>
           </div>
-        </div>
-
-        {/* Stats Counter Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 pt-12 border-t border-white/10">
-          {STATS.map((stat, idx) => (
-            <div key={idx} className="p-6 rounded-2xl border border-white/10 bg-white/[0.02] space-y-1">
-              <span className="font-display text-3xl sm:text-4xl text-white tracking-tight block">
-                {stat.value}
-              </span>
-              <span className="font-mono text-xs text-white/50 uppercase tracking-wider block">
-                {stat.label}
-              </span>
-            </div>
-          ))}
+          <Areas onApply={applyFor} />
         </div>
       </section>
 
-      {/* Culture & Values */}
-      <section className="py-16 px-4 sm:px-8 max-w-[90rem] mx-auto w-full space-y-12 border-t border-white/10">
-        <div className="max-w-2xl space-y-2">
-          <span className="font-mono text-xs text-[var(--brand)] uppercase tracking-wider">
-            Our Culture
-          </span>
-          <h2 className="font-display text-2xl sm:text-4xl text-white uppercase tracking-tight">
-            Why Build With Genesis?
-          </h2>
-          <p className="text-sm text-white/60">
-            We operate with startup speed and community heart. Here is what you can expect when you join our team.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {CULTURE_VALUES.map((item, i) => (
-            <div
-              key={i}
-              className="p-8 rounded-3xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20 transition-all space-y-3 group relative overflow-hidden"
-            >
-              <span className="font-mono text-sm text-[var(--brand)] font-bold block">
-                {item.num}
-              </span>
-              <h3 className="font-display text-xl text-white group-hover:text-[var(--brand)] transition-colors uppercase">
-                {item.title}
-              </h3>
-              <p className="text-xs sm:text-sm text-white/60 leading-relaxed">
-                {item.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Perks & Benefits Grid */}
-      <section className="py-16 px-4 sm:px-8 max-w-[90rem] mx-auto w-full space-y-12 border-t border-white/10 bg-[#121214]">
-        <div className="max-w-2xl space-y-2">
-          <span className="font-mono text-xs text-[var(--brand)] uppercase tracking-wider">
-            Team Perks & Support
-          </span>
-          <h2 className="font-display text-2xl sm:text-4xl text-white uppercase tracking-tight">
-            Designed for Growth & Well-Being
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {PERKS.map((perk, i) => (
-            <div
-              key={i}
-              className="p-6 rounded-2xl border border-white/10 bg-[#181818] space-y-3"
-            >
-              <div className="text-3xl">{perk.icon}</div>
-              <h3 className="font-display text-lg text-white uppercase">{perk.title}</h3>
-              <p className="text-xs text-white/60 leading-relaxed">{perk.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Open Roles Section */}
-      <section id="open-roles" className="py-20 px-4 sm:px-8 max-w-[90rem] mx-auto w-full space-y-12 border-t border-white/10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="max-w-2xl space-y-2">
-            <span className="font-mono text-xs text-[var(--brand)] uppercase tracking-wider">
-              Career Opportunities
-            </span>
-            <h2 className="font-display text-2xl sm:text-4xl text-white uppercase tracking-tight">
-              Open Positions
+      <section aria-labelledby="delhi-crew-title" className="border-t border-[var(--border)] px-5 py-16 md:px-12">
+        <Reveal className="mx-auto flex max-w-[90rem] flex-col gap-6 border border-[var(--heading)]/50 bg-[var(--heading)]/[0.06] p-6 md:flex-row md:items-center md:justify-between md:p-10">
+          <div>
+            <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--heading)]">Next event</p>
+            <h2 id="delhi-crew-title" className="mt-3 font-display text-[clamp(1.75rem,3.5vw,3rem)] leading-[0.95] text-[var(--heading)]">
+              Want to help at {DELHI.name} {DELHI.edition}?
             </h2>
-            <p className="text-sm text-white/60">
-              Find your domain below or submit a general application if you don't see an exact match.
+            <p className="mt-3 max-w-[56ch] text-base text-[var(--text-dim)]">
+              {DELHI.where}, {DELHI.when}. Pick event operations in the form and mention Delhi.
             </p>
           </div>
-
-          {/* Role Filter Tabs */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              { id: "all", label: "All Roles" },
-              { id: "engineering", label: "Engineering" },
-              { id: "design", label: "Design" },
-              { id: "community", label: "Community & Ops" },
-              { id: "campus", label: "Campus Lead" }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-xl font-mono text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                  activeTab === tab.id
-                    ? "bg-[var(--brand)] text-black font-bold shadow-[0_0_20px_rgba(196,181,253,0.3)]"
-                    : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Roles List Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredRoles.map((role) => (
-            <div
-              key={role.id}
-              className="p-8 rounded-3xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/20 transition-all space-y-4 flex flex-col justify-between"
-            >
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-[var(--brand)] bg-[var(--brand)]/10 px-3 py-1 rounded-full border border-[var(--brand)]/20">
-                    {role.type}
-                  </span>
-                  <span className="font-mono text-[11px] uppercase text-white/50">
-                    📍 {role.location}
-                  </span>
-                </div>
-
-                <h3 className="font-display text-2xl text-white uppercase tracking-tight">
-                  {role.title}
-                </h3>
-
-                <p className="text-xs sm:text-sm text-white/70 leading-relaxed">
-                  {role.desc}
-                </p>
-
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {role.tags.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="font-mono text-[10px] uppercase text-white/40 bg-white/5 px-2.5 py-1 rounded-md"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase text-white/40">
-                  Google Sheet Sync
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleApplyClick(role.category)}
-                  className="px-6 py-2.5 rounded-xl font-mono text-xs uppercase font-bold tracking-wider text-black bg-[var(--brand)] hover:bg-white transition-all shadow-[0_0_15px_rgba(196,181,253,0.25)] hover:scale-105 cursor-pointer"
-                >
-                  Quick Apply →
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Campus Chapter Callout */}
-      <section className="py-16 px-4 sm:px-8 max-w-[90rem] mx-auto w-full border-t border-white/10">
-        <div className="p-8 sm:p-12 rounded-3xl border border-white/15 bg-gradient-to-r from-white/[0.03] to-[var(--brand)]/10 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">
-          <div className="space-y-3 max-w-2xl">
-            <span className="font-mono text-xs text-[var(--brand)] uppercase tracking-wider">
-              Student Leadership
-            </span>
-            <h3 className="font-display text-2xl sm:text-4xl text-white uppercase tracking-tight">
-              Are You a Student Organizer?
-            </h3>
-            <p className="text-xs sm:text-sm text-white/70 leading-relaxed">
-              Launch a Genesis Campus Chapter at your college, host local hackathons, and join our elite network of student community leads.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => handleApplyClick("campus")}
-            className="px-8 py-4 rounded-2xl font-mono text-xs uppercase font-bold tracking-wider text-black bg-[var(--brand)] hover:bg-white transition-all shadow-[0_0_25px_rgba(196,181,253,0.35)] shrink-0 cursor-pointer"
-          >
-            Apply for Campus Chapter →
+          <button type="button" onClick={() => applyFor("events")} className="btn-cinema shrink-0">
+            Apply for Delhi <span aria-hidden>→</span>
           </button>
-        </div>
+        </Reveal>
       </section>
 
-      {/* Interactive Application Modal */}
-      <WorkWithUsForm
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        preselectedRole={selectedRole}
-      />
-
-      <Footer />
-    </div>
+      <section id="apply" aria-labelledby="apply-title" className="scroll-mt-28 border-t border-[var(--border)] px-5 py-24 md:px-12 md:py-32">
+        <div className="mx-auto grid max-w-[90rem] items-start gap-14 lg:grid-cols-12 lg:gap-16">
+          <div className="lg:sticky lg:top-32 lg:col-span-5">
+            <div className="flex items-center gap-3">
+              <span className="block h-2 w-2 bg-[var(--heading)]" aria-hidden />
+              <span className="overline">Apply</span>
+            </div>
+            <h2 id="apply-title" className="mt-6 font-display text-[clamp(2.5rem,5.5vw,5rem)] leading-[0.9] text-[var(--heading)]">
+              Tell us about you
+            </h2>
+            <p className="mt-6 max-w-[42ch] text-lg leading-relaxed text-[var(--text-dim)]">
+              Questions first? Email{" "}
+              <a href={`mailto:${CONTACT.email}`} className="text-[var(--heading)] underline underline-offset-4">
+                {CONTACT.email}
+              </a>
+              .
+            </p>
+          </div>
+          <div className="lg:col-span-7">
+            <WorkWithUsForm area={area} />
+          </div>
+        </div>
+      </section>
+    </PageShell>
   );
 }

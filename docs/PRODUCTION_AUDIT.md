@@ -1,5 +1,7 @@
 # Genesis Web — Production Readiness Audit
 
+> **Status, 13 October 2026:** superseded in part by the October 2026 website audit. Since then: Unsplash images and the gstatic Draco host are gone from the CSP, unknown URLs return a real 404 (`build/404.html`), routes are prerendered, and forms are stored in Supabase. See the root README.
+
 > **Audit date:** 20 Jul 2026  
 > **Mode:** Brutal / launch-blocking  
 > **Method:** Full codebase inspection + live browser DOM checks (not code review only)  

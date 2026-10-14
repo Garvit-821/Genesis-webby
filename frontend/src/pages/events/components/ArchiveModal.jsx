@@ -1,182 +1,117 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import HackersOccupiedPuneSchedule from '@features/events-showcase/HackersOccupiedPuneSchedule';
+import React, { useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { eventSummary } from "@shared/data/events";
+import { EASE_OUT } from "@shared/motion";
+import EventPoster from "./EventPoster";
+import RoleBadge from "./RoleBadge";
+import useDialog from "./useDialog";
 
-const CAT_COLOR = {
-  Hackathon: '#c4b5fd',
-  Workshop:  '#86efac',
-  Meetup:    '#fbbf24',
-  Summit:    '#f9a8d4',
-};
-function catColor(c) { return CAT_COLOR[c] || '#c4b5fd'; }
-
-export function ArchiveModal({ event, onClose, isUrl }) {
-  if (!event) return null;
-
-  const accent = catColor(event?.category);
-  const checkUrl = typeof isUrl === 'function'
-    ? isUrl
-    : (s) => s && typeof s === 'string' && (s.startsWith('http://') || s.startsWith('https://'));
-
-  const link = checkUrl(event?.media)
-    ? event.media
-    : checkUrl(event?.attendees)
-    ? event.attendees
-    : (event?.luma || null);
-
-  const isPuneEvent = Boolean(
-    event &&
-    ((event.title || '').toLowerCase().includes('occupied pune') || event.id === 'evt-upcoming-01')
+function Fact({ label, children }) {
+  if (!children) return null;
+  return (
+    <div className="border-t border-white/10 py-3">
+      <dt className="font-mono text-[12px] uppercase tracking-[0.16em] text-white/60">{label}</dt>
+      <dd className="mt-1 text-[15px] text-white">{children}</dd>
+    </div>
   );
+}
+
+/**
+ * Event details. One dialog layer only; no lightbox underneath (audit V04).
+ * Shows facts from the archive row, never raw links or record ids (V05).
+ */
+export function ArchiveModal({ event, onClose }) {
+  const ref = useRef(null);
+  const [photo, setPhoto] = useState(0);
+  useDialog(ref, onClose);
+  const titleId = `event-dialog-${event.id}`;
+  const photos = event.photos || [];
 
   return (
     <motion.div
+      className="fixed inset-0 z-[200] flex items-end justify-center bg-black/80 backdrop-blur-md sm:items-center sm:p-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={onClose}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-black/85 backdrop-blur-2xl overflow-y-auto"
+      transition={{ duration: 0.25 }}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <motion.div
-        initial={{ scale: 0.93, opacity: 0, y: 24 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.93, opacity: 0, y: 24 }}
-        transition={{ type: 'spring', duration: 0.5, bounce: 0.08 }}
-        onClick={e => e.stopPropagation()}
-        className={`relative w-full ${isPuneEvent ? 'max-w-5xl' : 'max-w-3xl'} bg-[#111116] border border-white/15 rounded-3xl overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.9)] max-h-[92vh] flex flex-col archive-scrollbar`}
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        initial={{ y: 60, opacity: 0, clipPath: "inset(12% 0% 0% 0%)" }}
+        animate={{ y: 0, opacity: 1, clipPath: "inset(0% 0% 0% 0%)" }}
+        exit={{ y: 40, opacity: 0 }}
+        transition={{ duration: 0.6, ease: EASE_OUT }}
+        className="relative grid max-h-[92svh] w-full max-w-5xl overflow-y-auto border border-white/15 bg-[#121214] focus:outline-none md:grid-cols-2"
       >
-        {/* Hero banner */}
-        <div className="relative h-64 sm:h-80 shrink-0 overflow-hidden">
-          <img
-            src={event?.img || event?.image || '/assets/BrandImg/1.png'}
-            alt={event?.title || 'Event'}
-            className="w-full h-full object-cover"
-          />
-          {/* Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#111116] via-[#111116]/60 to-transparent" />
-          {/* Accent line */}
-          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${accent}80, transparent)` }} />
-
-          {/* Close */}
-          <button
-            onClick={onClose}
-            className="absolute top-5 right-5 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/60 border border-white/20 text-white hover:bg-white/15 transition-all backdrop-blur-md text-sm"
-          >
-            ✕
-          </button>
-
-          {/* Title overlay */}
-          <div className="absolute bottom-6 left-6 right-6 space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className="px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest border"
-                style={{ color: accent, borderColor: `${accent}40`, backgroundColor: `${accent}15` }}
-              >
-                {event?.category || 'Event'}
-              </span>
-              <span className="px-2.5 py-0.5 rounded-md text-[10px] font-mono text-white/60 bg-black/40 border border-white/10">
-                {event?.year || '2026'}
-              </span>
-              <span className="px-2.5 py-0.5 rounded-md text-[10px] font-mono text-white/60 bg-black/40 border border-white/10">
-                {event?.city || 'Pune'}
-              </span>
+        <div className="relative aspect-[4/5] w-full md:aspect-auto md:min-h-[520px]">
+          <EventPoster event={event} className="absolute inset-0" size="large" photoIndex={photo} showText={!photos.length} loading="eager" />
+          {photos.length > 1 ? (
+            <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-2 p-4">
+              {photos.map((p, i) => (
+                <button
+                  key={p.src}
+                  type="button"
+                  onClick={() => setPhoto(i)}
+                  aria-label={`Show photo ${i + 1} of ${photos.length}: ${p.caption}`}
+                  aria-pressed={photo === i}
+                  className={`h-11 w-11 overflow-hidden border transition-colors ${photo === i ? "border-[var(--heading)]" : "border-white/30 hover:border-white/70"}`}
+                >
+                  <img src={p.src} alt="" className="h-full w-full object-cover" loading="lazy" />
+                </button>
+              ))}
             </div>
-            <h2 className="font-display text-2xl sm:text-4xl text-white uppercase tracking-tight leading-tight">
-              {event?.title}
-            </h2>
-            {event?.kicker && (
-              <p className="font-mono text-xs text-[var(--brand)]">{event.kicker}</p>
-            )}
-          </div>
+          ) : null}
         </div>
 
-        {/* Content body */}
-        <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 archive-scrollbar">
-          {/* Meta bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/10 font-mono text-xs">
-            <div>
-              <span className="text-[9px] uppercase tracking-wider text-white/40 block">Location</span>
-              <span className="text-white font-bold">{event?.location || event?.city || 'Pune'}</span>
-            </div>
-            <div>
-              <span className="text-[9px] uppercase tracking-wider text-white/40 block">Date</span>
-              <span className="text-white font-bold">{event?.date || event?.year}</span>
-            </div>
-            <div>
-              <span className="text-[9px] uppercase tracking-wider text-white/40 block">Scale</span>
-              <span className="text-[var(--brand)] font-bold">{event?.attendees || '500+ Hackers'}</span>
-            </div>
-            <div>
-              <span className="text-[9px] uppercase tracking-wider text-white/40 block">Organizers</span>
-              <span className="text-white font-bold">{event?.sponsors || 'Genesis'}</span>
-            </div>
+        <div className="flex flex-col p-6 sm:p-10">
+          <div className="flex items-start justify-between gap-4">
+            <RoleBadge role={event.role} />
+            <button
+              type="button"
+              onClick={onClose}
+              data-autofocus
+              className="-mr-2 -mt-2 inline-flex h-11 min-w-[44px] items-center justify-center gap-2 px-3 font-mono text-[12px] uppercase tracking-[0.16em] text-white/80 hover:text-white"
+            >
+              Close <span aria-hidden>✕</span>
+            </button>
           </div>
 
-          {/* Blurb */}
-          {event?.blurb && (
-            <div className="space-y-2">
-              <h4 className="font-mono text-[10px] uppercase tracking-widest text-white/40">About Event</h4>
-              <p className="text-sm sm:text-base text-white/80 leading-relaxed font-sans">{event.blurb}</p>
-            </div>
-          )}
+          <h2 id={titleId} className="mt-6 font-display text-[clamp(2rem,4vw,3.25rem)] leading-[0.95] text-[var(--heading)]">
+            {event.title}
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-white/80">{eventSummary(event)}</p>
+          {photos[photo] ? (
+            <p className="mt-2 text-sm text-white/60">Photo: {photos[photo].caption}</p>
+          ) : null}
 
-          {/* Hackers Occupied Pune Master Schedule Section */}
-          {isPuneEvent && (
-            <div className="pt-6 border-t border-white/10 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-bold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Official Schedule Integrated
-                  </div>
-                  <h3 className="font-display text-2xl uppercase tracking-tight text-white mt-1">
-                    Hackathon Agenda & Live Timeline
-                  </h3>
-                </div>
-                <Link
-                  to="/events/hackers-occupied-pune"
-                  onClick={onClose}
-                  className="px-4 py-2 rounded-xl bg-[var(--brand)] text-black font-mono text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-all text-center shrink-0"
-                >
-                  Open Dedicated Page ↗
-                </Link>
-              </div>
+          <dl className="mt-8">
+            <Fact label="Date">{event.date}</Fact>
+            <Fact label="Venue">{event.venue}</Fact>
+            <Fact label="City">{event.cities.join(", ")}</Fact>
+            <Fact label="Format">{event.category}</Fact>
+            <Fact label="Genesis role">{event.role}</Fact>
+            <Fact label="Attendance">{event.attendees ? event.attendees.toLocaleString("en-IN") : null}</Fact>
+          </dl>
 
-              {/* Embed schedule component */}
-              <HackersOccupiedPuneSchedule showHeader={false} />
+          {event.path ? (
+            <div className="mt-auto pt-8">
+              <Link to={event.path} className="btn-cinema">
+                {event.status === "upcoming" ? "See the event" : "Read the recap"} <span aria-hidden>→</span>
+              </Link>
             </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/10">
-            <span className="font-mono text-[10px] text-white/30">ID: {event?.id}</span>
-            <div className="flex items-center gap-3">
-              {isPuneEvent && (
-                <Link
-                  to="/events/hackers-occupied-pune"
-                  onClick={onClose}
-                  className="px-4 py-2 rounded-xl border border-white/20 text-xs font-mono text-white hover:bg-white/10 transition-all"
-                >
-                  View Full Schedule
-                </Link>
-              )}
-              {link ? (
-                <a
-                  href={link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-cinema text-xs py-2 px-5"
-                >
-                  Official Event Link ↗
-                </a>
-              ) : (
-                <span className="font-mono text-xs text-white/40 italic">Archived Record</span>
-              )}
-            </div>
-          </div>
+          ) : null}
         </div>
       </motion.div>
     </motion.div>
   );
 }
+
+export default ArchiveModal;

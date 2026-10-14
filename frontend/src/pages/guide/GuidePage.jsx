@@ -1,154 +1,163 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import Navbar from "@/widgets/layout/Navbar";
-import Footer from "@/widgets/layout/Footer";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import { PageShell } from "@widgets/layout";
+import { EASE_OUT } from "@shared/motion";
 import GuideSidebar from "./components/GuideSidebar";
 import GuideToc from "./components/GuideToc";
 import GuideContent from "./components/GuideContent";
 import GuideSearchModal from "./components/GuideSearchModal";
-import { getGuideArticle, GUIDE_CATEGORIES } from "@/features/guide/guideData";
+import { getGuideArticle } from "@/features/guide/guideData";
 
 export default function GuidePage() {
   const { category: paramCategory, slug: paramSlug } = useParams();
   const navigate = useNavigate();
-
-  // Fallback defaults
+  const isOverview = !paramCategory;
   const activeCategory = paramCategory || "introduction";
   const activeSlug = paramSlug || "overview";
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const articleData = getGuideArticle(activeCategory, activeSlug);
 
-  // Keyboard shortcut for search modal Ctrl+K / Cmd+K
+  // /guide is the canonical overview; /guide/introduction/overview is a duplicate.
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    if (paramCategory === "introduction" && paramSlug === "overview") {
+      navigate("/guide", { replace: true });
+    }
+  }, [paramCategory, paramSlug, navigate]);
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setIsSearchOpen((prev) => !prev);
       }
+      if (e.key === "Escape") setIsDrawerOpen(false);
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   const handleSelectArticle = (catId, slug) => {
-    navigate(`/guide/${catId}/${slug}`);
-    setIsMobileSidebarOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setIsDrawerOpen(false);
+    navigate(catId === "introduction" && slug === "overview" ? "/guide" : `/guide/${catId}/${slug}`);
   };
 
+  let seo;
+  if (!articleData) {
+    seo = { title: "Guide topic not found | Genesis Hacks", noindex: true };
+  } else if (!isOverview) {
+    seo = {
+      title: `${articleData.article.title} | Genesis Hacks guide`,
+      description: articleData.article.desc,
+    };
+  }
+
   return (
-    <div className="min-h-screen bg-[#181818] text-white flex flex-col selection:bg-white selection:text-black">
-      {/* Global Navbar */}
-      <Navbar />
-
-      {/* Mobile Guide Header Bar */}
-      <div className="md:hidden mt-[72px] px-4 py-3 bg-[#121214] border-b border-white/10 flex items-center justify-between z-30">
-        <button
-          type="button"
-          onClick={() => setIsMobileSidebarOpen((prev) => !prev)}
-          className="flex items-center gap-2 text-xs font-mono text-[#e2efba] bg-white/5 border border-white/10 px-3 py-1.5 rounded"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          <span>Guide Topics</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setIsSearchOpen(true)}
-          className="flex items-center gap-1.5 text-xs text-white/70 bg-white/5 border border-white/10 px-3 py-1.5 rounded"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <span>Search</span>
-        </button>
-      </div>
-
-      {/* Main Container */}
-      <div className="flex-1 max-w-[90rem] w-full mx-auto flex pt-0 md:pt-[72px] relative">
-        {/* Left Desktop Sidebar */}
-        <div className="hidden md:block w-72 shrink-0 border-r border-white/10 sticky top-[72px] h-[calc(100vh-72px)] overflow-hidden">
-          <GuideSidebar
-            currentCatId={activeCategory}
-            currentSlug={activeSlug}
-            onSelectArticle={handleSelectArticle}
-            onOpenSearch={() => setIsSearchOpen(true)}
-          />
+    <PageShell seo={seo}>
+      <div className="mx-auto w-full max-w-[90rem] pt-[120px] md:pt-[132px]">
+        {/* Mobile topic + search bar */}
+        <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-3 md:hidden">
+          <button
+            type="button"
+            onClick={() => setIsDrawerOpen(true)}
+            aria-expanded={isDrawerOpen}
+            aria-controls="guide-drawer"
+            className="flex min-h-[44px] items-center gap-2 border border-white/15 px-4 font-mono text-[12px] uppercase tracking-[0.14em] text-[var(--heading)]"
+          >
+            Topics
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsSearchOpen(true)}
+            className="flex min-h-[44px] items-center gap-2 border border-white/15 px-4 font-mono text-[12px] uppercase tracking-[0.14em] text-white/80"
+          >
+            Search
+          </button>
         </div>
 
-        {/* Mobile Drawer Overlay */}
-        {isMobileSidebarOpen && (
-          <div className="fixed inset-0 z-50 md:hidden flex">
-            <div
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm"
-              onClick={() => setIsMobileSidebarOpen(false)}
+        <div className="relative flex">
+          <div className="sticky top-24 hidden h-[calc(100vh-6rem)] w-72 shrink-0 border-r border-white/10 md:block">
+            <GuideSidebar
+              currentCatId={activeCategory}
+              currentSlug={activeSlug}
+              onNavigate={() => setIsDrawerOpen(false)}
+              onOpenSearch={() => setIsSearchOpen(true)}
             />
-            <div className="relative w-80 max-w-[85vw] bg-[#121214] h-full flex flex-col z-10 shadow-2xl">
-              <div className="p-3 border-b border-white/10 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setIsMobileSidebarOpen(false)}
-                  className="text-xs font-mono px-2.5 py-1 bg-white/10 text-white/80 rounded"
-                >
-                  Close ✕
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                <GuideSidebar
-                  currentCatId={activeCategory}
-                  currentSlug={activeSlug}
-                  onSelectArticle={handleSelectArticle}
-                  onOpenSearch={() => {
-                    setIsMobileSidebarOpen(false);
-                    setIsSearchOpen(true);
-                  }}
-                />
-              </div>
-            </div>
           </div>
-        )}
 
-        {/* Center Article Content Area */}
-        <div className="flex-1 flex justify-center">
-          {articleData ? (
-            <GuideContent
-              category={articleData.category}
-              article={articleData.article}
-              onSelectArticle={handleSelectArticle}
-            />
-          ) : (
-            <div className="p-12 text-center text-white/50 space-y-4">
-              <h2 className="font-display text-xl">Topic Not Found</h2>
-              <p className="text-xs">The requested guide page could not be located.</p>
-              <button
-                type="button"
-                onClick={() => handleSelectArticle("introduction", "overview")}
-                className="px-4 py-2 bg-[#e2efba] text-black text-xs font-bold rounded"
-              >
-                Return to Guide Overview
-              </button>
-            </div>
-          )}
+          <AnimatePresence>
+            {isDrawerOpen ? (
+              <div className="fixed inset-0 z-[60] flex md:hidden" id="guide-drawer">
+                <motion.button
+                  type="button"
+                  aria-label="Close topics"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+                  onClick={() => setIsDrawerOpen(false)}
+                />
+                <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Guide topics"
+                  initial={{ x: "-100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "-100%" }}
+                  transition={{ duration: 0.45, ease: EASE_OUT }}
+                  className="relative z-10 flex h-full w-80 max-w-[85vw] flex-col bg-[#121214] shadow-2xl"
+                >
+                  <div className="flex justify-end border-b border-white/10 p-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsDrawerOpen(false)}
+                      className="min-h-[44px] px-4 font-mono text-[12px] uppercase tracking-[0.14em] text-white/80"
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    <GuideSidebar
+                      currentCatId={activeCategory}
+                      currentSlug={activeSlug}
+                      onNavigate={() => setIsDrawerOpen(false)}
+                      onOpenSearch={() => {
+                        setIsDrawerOpen(false);
+                        setIsSearchOpen(true);
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              </div>
+            ) : null}
+          </AnimatePresence>
+
+          <div className="flex min-w-0 flex-1 justify-center">
+            {articleData ? (
+              <GuideContent
+                key={`${activeCategory}/${activeSlug}`}
+                category={articleData.category}
+                article={articleData.article}
+              />
+            ) : (
+              <div className="space-y-6 px-5 py-24 text-center">
+                <h1 className="font-display text-4xl text-[var(--heading)]">Topic not found</h1>
+                <p className="text-base text-[var(--text-dim)]">This guide page does not exist or has moved.</p>
+                <Link to="/guide" className="btn-cinema">
+                  Back to the guide
+                </Link>
+              </div>
+            )}
+          </div>
+
+          <GuideToc key={`toc-${activeCategory}/${activeSlug}`} sections={articleData?.article?.content?.sections || []} />
         </div>
-
-        {/* Right Sticky TOC */}
-        <GuideToc sections={articleData?.article?.content?.sections || []} />
       </div>
 
-      {/* Global Search Modal */}
-      <GuideSearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        onSelectArticle={handleSelectArticle}
-      />
-
-      {/* Footer */}
-      <Footer />
-    </div>
+      <GuideSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} onSelectArticle={handleSelectArticle} />
+    </PageShell>
   );
 }

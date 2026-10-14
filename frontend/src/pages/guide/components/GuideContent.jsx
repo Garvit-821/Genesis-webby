@@ -1,267 +1,163 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { CONTACT } from "@shared/config/site";
+import { Reveal, SplitText } from "@shared/motion";
 import { getAdjacentArticles } from "@/features/guide/guideData";
 
-export default function GuideContent({
-  category,
-  article,
-  onSelectArticle
-}) {
-  const [checklistState, setChecklistState] = useState({});
-  const [feedbackGiven, setFeedbackGiven] = useState(null);
+const CALLOUT_STYLES = {
+  warning: "border-[#ff9b9b]/40 bg-[#2a1416] text-[#ffd0d0]",
+  important: "border-amber-300/40 bg-amber-300/[0.08] text-amber-100",
+  tip: "border-[#e2efba]/40 bg-[#e2efba]/[0.08] text-[#eef5d6]",
+  note: "border-[#c4b5fd]/40 bg-[#c4b5fd]/[0.08] text-[#e7e1ff]",
+};
+
+function articlePath(categoryId, slug) {
+  return categoryId === "introduction" && slug === "overview" ? "/guide" : `/guide/${categoryId}/${slug}`;
+}
+
+export default function GuideContent({ category, article }) {
+  const [checked, setChecked] = useState({});
 
   if (!article || !category) return null;
-
   const { prev, next } = getAdjacentArticles(category.id, article.slug);
 
-  const toggleCheckItem = (id) => {
-    setChecklistState((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const handleFeedback = (type) => {
-    setFeedbackGiven(type);
-    toast.success(
-      type === "yes"
-        ? "Thank you for your feedback!"
-        : "Thanks! We'll keep improving this guide."
-    );
-  };
-
-  const copyPageLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success("Guide URL copied to clipboard!");
+  const copyPageLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied");
+    } catch {
+      toast.error("Could not copy the link");
+    }
   };
 
   return (
-    <div className="flex-1 min-w-0 max-w-4xl px-4 sm:px-8 py-8 space-y-8 text-white/90">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs font-mono text-white/50">
-        <span>Guide</span>
-        <span>/</span>
-        <span className="text-[#c4b5fd]">{category.title}</span>
-        <span>/</span>
-        <span className="text-white/80 font-medium truncate">{article.title}</span>
+    <article className="min-w-0 max-w-3xl flex-1 space-y-10 px-5 py-10 text-white/90 sm:px-8 md:py-14">
+      <nav aria-label="Breadcrumb" className="font-mono text-[12px] uppercase tracking-[0.14em] text-white/60">
+        <ol className="flex flex-wrap items-center gap-2">
+          <li>
+            <Link to="/guide" className="hover:text-white">Guide</Link>
+          </li>
+          <li aria-hidden>/</li>
+          <li className="text-[#c4b5fd]">{category.title}</li>
+        </ol>
       </nav>
 
-      {/* Article Header */}
-      <header className="space-y-4 pb-6 border-b border-white/10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="font-display text-2xl sm:text-4xl text-[#e2efba] uppercase tracking-wide leading-tight">
-            {article.title}
-          </h1>
-
-          {/* Quick Share / Copy URL */}
-          <button
-            type="button"
-            onClick={copyPageLink}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 rounded text-xs text-white/70 transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            <span>Copy Link</span>
+      <header className="space-y-5 border-b border-white/10 pb-8">
+        <SplitText
+          as="h1"
+          text={article.title}
+          trigger="mount"
+          stagger={0.04}
+          className="font-display text-[clamp(2.25rem,5vw,4rem)] leading-[0.95] text-[var(--heading)]"
+        />
+        {article.content?.subtitle ? (
+          <p className="text-lg leading-relaxed text-white/75">{article.content.subtitle}</p>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[12px] uppercase tracking-[0.12em] text-white/60">
+          <span>Updated {article.lastUpdated}</span>
+          <span aria-hidden>·</span>
+          <span>{article.readTime}</span>
+          <span aria-hidden>·</span>
+          <button type="button" onClick={copyPageLink} className="min-h-[32px] uppercase underline-offset-4 hover:text-white hover:underline">
+            Copy link
           </button>
         </div>
-
-        {article.content?.subtitle && (
-          <p className="text-base sm:text-lg text-white/70 font-light leading-relaxed">
-            {article.content.subtitle}
-          </p>
-        )}
-
-        {/* Metadata Bar */}
-        <div className="flex items-center gap-4 text-xs font-mono text-white/40 pt-2">
-          <span>Updated {article.lastUpdated}</span>
-          <span>•</span>
-          <span>{article.readTime}</span>
-        </div>
+        <p className="text-[13px] leading-relaxed text-white/60">
+          Structure adapted from the{" "}
+          <a href="https://guide.mlh.io" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-white">
+            MLH Hackathon Organizer Guide (guide.mlh.io)
+          </a>
+          .
+        </p>
       </header>
 
-      {/* Hero / Intro Block */}
-      {article.content?.heroText && (
-        <div className="p-5 rounded-lg bg-white/[0.03] border border-white/10 text-white/90 text-sm leading-relaxed">
+      {article.content?.heroText ? (
+        <Reveal className="border-l-2 border-[var(--heading)] pl-5 text-lg leading-relaxed text-white/90">
           {article.content.heroText}
-        </div>
-      )}
+        </Reveal>
+      ) : null}
 
-      {/* Optional Video Embed */}
-      {article.content?.videoEmbed && (
-        <div className="space-y-2">
-          <div className="aspect-video w-full rounded-lg overflow-hidden border border-white/15 bg-black">
-            <iframe
-              src={article.content.videoEmbed.url}
-              title={article.content.videoEmbed.title}
-              className="w-full h-full"
-              allowFullScreen
-            />
-          </div>
-          <p className="text-xs text-white/50 text-center font-mono">
-            {article.content.videoEmbed.caption}
-          </p>
-        </div>
-      )}
-
-      {/* Main Content Sections */}
-      <main className="space-y-10">
+      <div className="space-y-12">
         {article.content?.sections?.map((sec) => (
-          <section key={sec.id} id={sec.id} className="space-y-4 scroll-mt-28">
-            <h2 className="font-display text-xl text-[#e2efba] uppercase tracking-wider flex items-center gap-2 group">
-              <span>{sec.title}</span>
+          <Reveal as="section" key={sec.id} id={sec.id} aria-labelledby={`${sec.id}-title`} className="scroll-mt-32 space-y-4">
+            <h2 id={`${sec.id}-title`} className="group flex items-center gap-2 font-display text-2xl leading-tight text-[var(--heading)]">
+              {sec.title}
               <a
                 href={`#${sec.id}`}
-                className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-white/80 transition-opacity text-sm font-mono"
+                aria-label={`Link to ${sec.title}`}
+                className="font-mono text-sm text-white/40 opacity-0 transition-opacity hover:text-white focus-visible:opacity-100 group-hover:opacity-100"
               >
                 #
               </a>
             </h2>
 
-            {sec.text && (
-              <p className="text-sm sm:text-base leading-relaxed text-white/80 whitespace-pre-line">
-                {sec.text}
-              </p>
-            )}
+            {sec.text ? <p className="whitespace-pre-line text-base leading-relaxed text-white/80 sm:text-[17px]">{sec.text}</p> : null}
 
-            {/* Callout Box */}
-            {sec.callout && (
-              <div
-                className={`p-4 rounded border text-xs sm:text-sm leading-relaxed space-y-1 ${
-                  sec.callout.type === "warning"
-                    ? "bg-red-500/10 border-red-500/30 text-red-200"
-                    : sec.callout.type === "important"
-                    ? "bg-amber-500/10 border-amber-500/30 text-amber-200"
-                    : sec.callout.type === "tip"
-                    ? "bg-[#e2efba]/10 border-[#e2efba]/30 text-[#e2efba]"
-                    : "bg-blue-500/10 border-blue-500/30 text-blue-200"
-                }`}
-              >
-                <div className="font-bold uppercase tracking-wider text-[11px] font-mono">
-                  {sec.callout.title}
-                </div>
+            {sec.callout ? (
+              <div className={`space-y-1 border p-4 text-[15px] leading-relaxed ${CALLOUT_STYLES[sec.callout.type] || CALLOUT_STYLES.note}`}>
+                <div className="font-mono text-[12px] uppercase tracking-[0.14em]">{sec.callout.title}</div>
                 <div>{sec.callout.text}</div>
               </div>
-            )}
+            ) : null}
 
-            {/* Interactive Checklist */}
-            {sec.checklist && (
-              <div className="p-4 bg-white/5 border border-white/10 rounded-lg space-y-3">
-                <div className="font-display text-xs text-[#c4b5fd] uppercase tracking-wider">
-                  Operational Checklist
-                </div>
-                <div className="space-y-2">
-                  {sec.checklist.map((item) => {
-                    const isChecked = checklistState[item.id] || false;
-                    return (
-                      <label
-                        key={item.id}
-                        onClick={() => toggleCheckItem(item.id)}
-                        className="flex items-start gap-3 p-2 rounded hover:bg-white/5 cursor-pointer text-xs sm:text-sm transition-colors"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {}}
-                          className="mt-0.5 rounded border-white/30 bg-transparent text-[#e2efba] focus:ring-0"
-                        />
-                        <span className={isChecked ? "line-through text-white/40" : "text-white/90"}>
-                          {item.text}
-                        </span>
+            {sec.checklist ? (
+              <fieldset className="space-y-2 border border-white/10 bg-white/[0.03] p-4">
+                <legend className="px-1 font-mono text-[12px] uppercase tracking-[0.14em] text-[#c4b5fd]">Checklist</legend>
+                {sec.checklist.map((item) => {
+                  const id = `${sec.id}-${item.id}`;
+                  const isChecked = Boolean(checked[id]);
+                  return (
+                    <div key={item.id} className="flex items-start gap-3">
+                      <input
+                        id={id}
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => setChecked((prev) => ({ ...prev, [id]: !prev[id] }))}
+                        className="mt-1 h-4 w-4 shrink-0 accent-[#e2efba]"
+                      />
+                      <label htmlFor={id} className={`cursor-pointer text-[15px] leading-relaxed ${isChecked ? "text-white/45 line-through" : "text-white/90"}`}>
+                        {item.text}
                       </label>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Downloadable Resource Links */}
-            {sec.resourceLinks && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                {sec.resourceLinks.map((res, i) => (
-                  <a
-                    key={i}
-                    href={res.url}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      toast.info(`Opening ${res.title}`);
-                    }}
-                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#e2efba]/50 rounded text-xs flex items-center justify-between group transition-all"
-                  >
-                    <span className="font-medium text-white/90 group-hover:text-[#e2efba] truncate">
-                      {res.title}
-                    </span>
-                    <svg className="w-4 h-4 text-white/40 group-hover:text-[#e2efba] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                  </a>
-                ))}
-              </div>
-            )}
-          </section>
+                    </div>
+                  );
+                })}
+              </fieldset>
+            ) : null}
+          </Reveal>
         ))}
-      </main>
-
-      {/* Helpful Feedback Widget */}
-      <div className="pt-8 pb-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <span className="text-xs text-white/60 font-mono">
-          Was this page helpful?
-        </span>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => handleFeedback("yes")}
-            className={`px-3 py-1.5 rounded text-xs font-mono transition-colors border ${
-              feedbackGiven === "yes"
-                ? "bg-[#e2efba] text-black border-[#e2efba]"
-                : "bg-white/5 hover:bg-white/10 border-white/15 text-white/80"
-            }`}
-          >
-            👍 Yes
-          </button>
-          <button
-            type="button"
-            onClick={() => handleFeedback("no")}
-            className={`px-3 py-1.5 rounded text-xs font-mono transition-colors border ${
-              feedbackGiven === "no"
-                ? "bg-red-500 text-white border-red-500"
-                : "bg-white/5 hover:bg-white/10 border-white/15 text-white/80"
-            }`}
-          >
-            👎 No
-          </button>
-        </div>
       </div>
 
-      {/* Footer Navigation (Prev / Next Article) */}
-      <footer className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-white/10">
-        {prev ? (
-          <button
-            type="button"
-            onClick={() => onSelectArticle(prev.categoryId, prev.slug)}
-            className="p-4 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 text-left space-y-1 transition-all group"
-          >
-            <div className="text-[10px] font-mono uppercase text-white/40 group-hover:text-white/60">
-              ← Previous
-            </div>
-            <div className="text-sm font-semibold text-white group-hover:text-[#e2efba] truncate">
-              {prev.title}
-            </div>
-          </button>
-        ) : <div />}
+      <p className="border-t border-white/10 pt-8 text-[15px] text-white/70">
+        Something missing or wrong?{" "}
+        <a href={`mailto:${CONTACT.email}`} className="text-white underline underline-offset-4">
+          Email {CONTACT.email}
+        </a>
+        .
+      </p>
 
-        {next ? (
-          <button
-            type="button"
-            onClick={() => onSelectArticle(next.categoryId, next.slug)}
-            className="p-4 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 text-right space-y-1 transition-all group"
+      <nav aria-label="Guide pages" className="grid grid-cols-1 gap-4 border-t border-white/10 pt-6 sm:grid-cols-2">
+        {prev ? (
+          <Link
+            to={articlePath(prev.categoryId, prev.slug)}
+            className="group space-y-1 border border-white/10 p-4 transition-colors hover:border-white/30 hover:bg-white/[0.04]"
           >
-            <div className="text-[10px] font-mono uppercase text-white/40 group-hover:text-white/60">
-              Next →
-            </div>
-            <div className="text-sm font-semibold text-white group-hover:text-[#e2efba] truncate">
-              {next.title}
-            </div>
-          </button>
-        ) : <div />}
-      </footer>
-    </div>
+            <span className="block font-mono text-[12px] uppercase tracking-[0.14em] text-white/60">← Previous</span>
+            <span className="block truncate text-base text-white group-hover:text-[var(--heading)]">{prev.navTitle || prev.title}</span>
+          </Link>
+        ) : (
+          <span />
+        )}
+        {next ? (
+          <Link
+            to={articlePath(next.categoryId, next.slug)}
+            className="group space-y-1 border border-white/10 p-4 text-right transition-colors hover:border-white/30 hover:bg-white/[0.04]"
+          >
+            <span className="block font-mono text-[12px] uppercase tracking-[0.14em] text-white/60">Next →</span>
+            <span className="block truncate text-base text-white group-hover:text-[var(--heading)]">{next.navTitle || next.title}</span>
+          </Link>
+        ) : null}
+      </nav>
+    </article>
   );
 }

@@ -68,7 +68,7 @@ function DefaultErrorFallback({
           : "flex min-h-[100svh] w-full flex-col items-center justify-center bg-[#181818] px-6 py-28 text-center"
       }
     >
-      <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-faint)]">
+      <p className="font-mono text-[12px] uppercase tracking-[0.24em] text-[var(--text-faint)]">
         Runtime error
       </p>
       <h2 className="mt-4 font-display text-3xl tracking-tight text-[var(--heading)] sm:text-4xl md:text-5xl">

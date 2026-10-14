@@ -18,7 +18,8 @@
   "scripts": {
     "dev": "craco start",
     "start": "npm run dev",
-    "build": "craco build",
+    "build": "GENERATE_SOURCEMAP=false craco build && node scripts/prerender.mjs",
+    "prerender": "node scripts/prerender.mjs",
     "test": "craco test",
     "check:encoding": "node scripts/check-encoding.mjs",
     "check:critical": "node scripts/check-critical-blockers.mjs",

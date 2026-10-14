@@ -1,13 +1,16 @@
 # Form Data Collection (Google Sheets)
 
-Every form on the website (Contact, Work With Us, Partner, Collaborate) saves its submissions to one Google Sheet. Each form gets its own tab, so the team can open the sheet in Google Sheets (or download it as Excel) and follow up from there.
+Every form on the website (Contact, Work With Us, Partner, Collaborate, Delhi Interest) saves its submissions to one Google Sheet. Each form gets its own tab, so the team can open the sheet in Google Sheets (or download it as Excel) and follow up from there.
 
 | Website page | Tab | Columns |
 | --- | --- | --- |
-| `/contact` | Contact | Timestamp, Name, Email, Reaching out as, Message, Status, Notes |
-| `/careers` | Work With Us | Timestamp, Name, Email, Phone, Domain, Experience, Portfolio / Link, Why Genesis, Status, Notes |
-| `/partner` | Partner | Timestamp, Name, Email, Phone, Company / College, Partnership type, Website, Details, Attachment, Status, Notes |
+| `/contact` and home | Contact | Timestamp, Name, Email, Reaching out as, Message, Status, Notes |
+| `/careers` | Work With Us | Timestamp, Name, Email, Phone, Area of work, Experience, City, Portfolio / Link, What they want to work on, Status, Notes |
+| `/partner` | Partner | Timestamp, Name, Email, Phone, Company / College, Event of interest, Goals, Partnership type, Budget band, Timeline, Website, Details, Attachment, Status, Notes |
 | `/collaborate` | Collaborate | Timestamp, Name, Email, Phone, Organization / Event, Collaboration type, Website, Details, Status, Notes |
+| `/events/hackers-occupied-delhi` | Delhi Interest | Timestamp, Name, Email, Phone, College / Organisation, City, Tracks, Team status, Status, Notes |
+
+Since October 2026 the live site saves every form through `/api/submit-form` (Supabase). The browser only posts straight to this Google Sheets web app as a fallback when that function is not running at all (for example plain `npm start` without `vercel dev`). Either way, the website only shows "received" when an endpoint confirms the submission was saved; otherwise the visitor sees an error and a link to email `partner@genesishacks.com`, so nothing is lost silently. Multi-select answers (Goals, Tracks) arrive as lists and are written as comma-separated text.
 
 On the Partner form, choosing **Event sponsorship** or **Community partnership** shows an optional brochure / pitch deck upload (PDF, PPT or PPTX, up to 3 MB). The file is saved to a Drive folder called `Genesis Form Uploads` in the Google account that owns the script, and its link goes in the **Attachment** column. The files are private: share that folder with teammates who need them.
 
@@ -19,7 +22,7 @@ The script lives in [`docs/google-sheets/Code.gs`](google-sheets/Code.gs).
 
 1. Create a blank sheet at [sheets.google.com](https://sheets.google.com) and name it `Genesis Website Form Submissions`.
 2. Open **Extensions > Apps Script**, delete the default code, and paste in the contents of `docs/google-sheets/Code.gs`.
-3. Select the `setup` function in the toolbar and click **Run**. Approve the permissions prompt. This creates the four tabs with headers.
+3. Select the `setup` function in the toolbar and click **Run**. Approve the permissions prompt. This creates the five tabs with headers.
    Google will ask for Drive access as well as Sheets access, because the script saves uploads to Drive.
 4. Click **Deploy > New deployment**, choose type **Web app**, then set:
    - **Execute as**: `Me`
@@ -49,6 +52,15 @@ The script lives in [`docs/google-sheets/Code.gs`](google-sheets/Code.gs).
 ## Changing the script later
 
 After editing `Code.gs` in Apps Script, use **Deploy > Manage deployments > Edit > New version**. Saving alone does not update the live web app, and creating a new deployment changes the URL.
+
+## Upgrading from the October 2026 form changes
+
+The Partner form now also asks for **Event of interest**, **Goals**, **Budget band** and **Timeline**, the Work With Us form asks for **City**, and there is a new **Delhi Interest** form. Headers are only written when a tab is created, so:
+
+1. Paste the new `Code.gs` into Apps Script.
+2. Rename the existing **Partner** and **Work With Us** tabs (for example `Partner (before Oct 2026)`), so old rows keep their old headers.
+3. Run `setup` again. It creates fresh **Partner**, **Work With Us** and **Delhi Interest** tabs with the new headers and leaves the other tabs alone.
+4. Publish a new version of the deployment (**Deploy > Manage deployments > Edit > New version**).
 
 ## Notes
 

@@ -10,7 +10,8 @@ Use this folder as the source of truth for contributing to Genesis.
 4. [Performance and optimization](PERFORMANCE.md)
 5. [UI, animation, and 3D guidelines](UI_ANIMATION_3D.md)
 6. [Release checklist](RELEASE_CHECKLIST.md)
-7. [Production readiness audit](PRODUCTION_AUDIT.md) — security, CVEs, 404, encoding, 3D/perf blockers and fix order
+7. [Production readiness audit, July 2026](PRODUCTION_AUDIT.md): security, CVEs, 404, encoding, 3D/perf blockers and fix order
+8. The website audit of 13 October 2026 (the PDF in the repository root) drove the redesign: single source of truth for facts, prerendered routes with real 404s, Supabase form storage, DPDP-ready legal pages and the accessibility fixes. Forms and Supabase setup are in the [root README](../README.md#forms-and-supabase).
 
 ## Core principle
 

@@ -156,7 +156,14 @@ function pointerMidpoint(a, b) {
   return { x: (a.x + b.x) * 0.5, y: (a.y + b.y) * 0.5 };
 }
 
-export default function InfiniteGallery() {
+/**
+ * WebGL photo field.
+ * mode="immersive": full-viewport, captures wheel and touch gestures.
+ * mode="embedded": lives inside a scrolling page, so the wheel scrolls the
+ * page (Ctrl/Cmd + wheel zooms) and vertical swipes pass through to it.
+ */
+export default function InfiniteGallery({ mode = "immersive", className = "" }) {
+  const embedded = mode === "embedded";
   const mountRef = useRef(null);
   const [activeCaption, setActiveCaption] = useState(GALLERY_PHOTOS[0]);
   const [isDragging, setIsDragging] = useState(false);
@@ -194,7 +201,7 @@ export default function InfiniteGallery() {
       width: "100%",
       height: "100%",
       display: "block",
-      touchAction: "none",
+      touchAction: embedded ? "pan-y" : "none",
       cursor: "grab",
       WebkitUserSelect: "none",
       userSelect: "none",
@@ -305,7 +312,7 @@ export default function InfiniteGallery() {
     };
 
     const onPointerDown = (event) => {
-      event.preventDefault();
+      if (!embedded || event.pointerType === "mouse") event.preventDefault();
       activePointers.set(event.pointerId, {
         x: event.clientX,
         y: event.clientY,
@@ -348,7 +355,7 @@ export default function InfiniteGallery() {
         return;
       }
 
-      event.preventDefault();
+      if (!embedded || event.pointerType === "mouse") event.preventDefault();
       const prev = activePointers.get(event.pointerId);
       activePointers.set(event.pointerId, {
         x: event.clientX,
@@ -417,6 +424,8 @@ export default function InfiniteGallery() {
     };
 
     const onWheel = (event) => {
+      // Inside a page, a plain wheel scrolls the page; only Ctrl/Cmd zooms.
+      if (embedded && !(event.ctrlKey || event.metaKey)) return;
       event.preventDefault();
       if (event.ctrlKey || event.metaKey) {
         targetZoom = THREE.MathUtils.clamp(
@@ -464,8 +473,10 @@ export default function InfiniteGallery() {
     // Don't end drag on leave — mobile browsers fire this inconsistently
     el.addEventListener("lostpointercapture", endPointer);
     el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("touchstart", onTouchStart, { passive: false });
-    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    if (!embedded) {
+      el.addEventListener("touchstart", onTouchStart, { passive: false });
+      el.addEventListener("touchmove", onTouchMove, { passive: false });
+    }
     window.addEventListener("resize", onResize);
     window.visualViewport?.addEventListener("resize", onResize);
     window.visualViewport?.addEventListener("scroll", onResize);
@@ -555,21 +566,26 @@ export default function InfiniteGallery() {
         container.removeChild(renderer.domElement);
       }
     };
+    // Built once per mount; the page remounts the field to switch modes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden overscroll-none bg-[#141414] touch-none select-none">
-      <div ref={mountRef} className="absolute inset-0 touch-none" />
+    <div
+      className={`relative w-full overflow-hidden bg-[#141414] select-none ${embedded ? "h-full" : "h-[100dvh] overscroll-none touch-none"} ${className}`}
+    >
+      <div ref={mountRef} aria-hidden="true" className={`absolute inset-0 ${embedded ? "" : "touch-none"}`} />
 
       {!ready && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-white/40">
-            Loading frames…
+          <p className="font-mono text-[12px] uppercase tracking-[0.2em] text-white/60">
+            Loading photos
           </p>
         </div>
       )}
 
       <div
+        aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-1.5 px-4 pt-16 sm:gap-2 sm:px-6 sm:pt-24 sm:pb-8"
         style={{
           paddingBottom: "max(1.25rem, env(safe-area-inset-bottom, 0px))",
@@ -580,17 +596,19 @@ export default function InfiniteGallery() {
         <p className="max-w-[18rem] text-center font-display text-xl leading-tight text-[var(--heading)] sm:max-w-none sm:text-3xl">
           {activeCaption?.caption}
         </p>
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/55 sm:text-[11px]">
+        <p className="font-mono text-[12px] uppercase tracking-[0.16em] text-white/70">
           {activeCaption?.meta}
         </p>
-        <p className="mt-2 font-mono text-[9px] uppercase tracking-[0.2em] text-white/35 sm:mt-3 sm:text-[10px] sm:tracking-[0.22em]">
+        <p className="mt-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white/60 sm:mt-3">
           {isDragging
-            ? touchUi
-              ? "Moving"
-              : "Dragging"
-            : touchUi
-              ? "Drag · Pinch to zoom"
-              : "Drag · Scroll · Ctrl+Scroll zoom"}
+            ? "Moving"
+            : embedded
+              ? touchUi
+                ? "Drag sideways to explore"
+                : "Drag to explore · Ctrl + scroll to zoom"
+              : touchUi
+                ? "Drag · Pinch to zoom"
+                : "Drag · Scroll · Ctrl + scroll to zoom"}
         </p>
       </div>
     </div>

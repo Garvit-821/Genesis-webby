@@ -1,180 +1,159 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import InnerPage from "../shared/InnerPage";
+import { motion } from "framer-motion";
+import { PageShell, PageHero } from "@widgets/layout";
+import { CONTACT, DELHI } from "@shared/config/site";
+import { EASE_OUT, Magnetic, Reveal } from "@shared/motion";
 
-const VALUES = [
+/** Plain, checkable rules. No slogans (audit register 7, #25, #26). */
+const TENETS = [
   {
-    num: "01",
-    title: "SHIP WITH CRAFT",
-    subhead: "Excellence down to the last detail",
-    description:
-      "Speed matters, but craft is non-negotiable. We value clean architecture, thoughtful typography, resilient codebases, and interfaces that wow users at first glance.",
-    tenet: "A project isn't finished when it runs; it's finished when it's built with pride.",
-    accent: "border-cyan-500/30 text-cyan-300"
+    title: "Working builds over slides",
+    text: "Judges at events we run score what a team built during the event. A demo that works beats a polished pitch deck.",
   },
   {
-    num: "02",
-    title: "BUILD IN PUBLIC",
-    subhead: "Radical transparency & open learning",
-    description:
-      "We encourage builders to share work-in-progress, open-source their tooling, publish post-mortems, and celebrate unfiltered breakthroughs and failures alike.",
-    tenet: "Demystify the journey from zero to one.",
-    accent: "border-purple-500/30 text-purple-300"
+    title: "Build in public",
+    text: "We encourage teams to share their code, write up what broke, and keep their projects online after the event.",
   },
   {
-    num: "03",
-    title: "RADICAL INCLUSION",
-    subhead: "Merit & passion above credentials",
-    description:
-      "Elite engineering talent comes from anywhere—self-taught hackers, university dropouts, design obsessives, and veteran developers. Pedigree means nothing; curiosity is everything.",
-    tenet: "The terminal treats everyone equally.",
-    accent: "border-emerald-500/30 text-emerald-300"
+    title: "Open to anyone who builds",
+    text: "You do not need a computer science degree or a famous college. First-timers, designers and self-taught developers are welcome at every event we run.",
   },
   {
-    num: "04",
-    title: "NO HYPE, ALL SUBSTANCE",
-    subhead: "Deployed products over slides",
-    description:
-      "We measure progress by working software, compiled hardware, and solved real-world problems—never by vanity metrics, marketing fluff, or pitch decks.",
-    tenet: "Show code, don't tell stories.",
-    accent: "border-amber-500/30 text-amber-300"
+    title: "Numbers we can back up",
+    text: "We only publish figures we can source, and we say when a number is a projection rather than a result.",
   },
   {
-    num: "05",
-    title: "PEER-TO-PEER POWER",
-    subhead: "Horizontal mentorship & support",
-    description:
-      "Knowledge flows laterally. The hacker sitting next to you at 2 AM might solve your toughest bug. We cultivate a culture where every builder lifts others as they climb.",
-    tenet: "Collaboration always defeats solo ego.",
-    accent: "border-blue-500/30 text-blue-300"
+    title: "Help each other",
+    text: "Mentors, organisers and other teams are there to get you unstuck. Asking early is encouraged.",
   },
   {
-    num: "06",
-    title: "LEAVE IT BETTER",
-    subhead: "Stewardship of community & space",
-    description:
-      "We respect our venues, mentors, open-source repositories, and fellow community members. We leave every physical and digital environment stronger than we found it.",
-    tenet: "Honor people's time, trust, and energy.",
-    accent: "border-rose-500/30 text-rose-300"
-  }
+    title: "Leave it better",
+    text: "We respect venues, mentors' time and other people's work, and we clean up after ourselves.",
+  },
 ];
 
-const CODE_OF_HONOR = [
+const CONDUCT = [
   {
-    title: "Intellectual Honesty",
-    text: "Always credit original authors, open-source libraries, and teammates. Plagiarism and stolen work have zero place in our community."
+    title: "Credit other people's work",
+    text: "Name the libraries, APIs and teammates you used. Submitting someone else's work as your own is not allowed.",
   },
   {
-    title: "Constructive Critique",
-    text: "Review code and designs with empathy. Challenge ideas vigorously while supporting the person behind the keyboard."
+    title: "Critique the work, not the person",
+    text: "Challenge ideas and code directly, and stay kind to the people behind them.",
   },
   {
-    title: "Zero Ego, Max Curiosity",
-    text: "Be eager to say 'I don't know yet, let's figure it out.' Relentless curiosity beats assumed knowledge every single time."
+    title: "Say when you do not know",
+    text: "Nobody knows everything at 3 AM. Asking is how teams finish.",
   },
   {
-    title: "Safe & Supportive Space",
-    text: "We maintain zero tolerance for harassment, discrimination, or gatekeeping of any kind across all online and offline Genesis events."
-  }
+    title: "No harassment, ever",
+    text: "Harassment, discrimination and gatekeeping are not tolerated at any Genesis event, online or offline.",
+  },
 ];
+
+function Tenet({ tenet, index }) {
+  const n = String(index + 1).padStart(2, "0");
+  return (
+    <li className="group grid gap-6 border-b border-[var(--border)] py-10 md:grid-cols-12 md:gap-10 md:py-14">
+      <div aria-hidden className="relative md:col-span-3">
+        <span className="block font-display text-[clamp(5rem,11vw,10rem)] leading-[0.8] text-outline opacity-50">{n}</span>
+        <motion.span
+          initial={{ clipPath: "inset(100% 0 0 0)" }}
+          whileInView={{ clipPath: "inset(0% 0 0 0)" }}
+          viewport={{ once: true, amount: 0.6 }}
+          transition={{ duration: 1.3, ease: EASE_OUT }}
+          className="absolute left-0 top-0 block font-display text-[clamp(5rem,11vw,10rem)] leading-[0.8] text-[var(--heading)]"
+        >
+          {n}
+        </motion.span>
+      </div>
+      <Reveal className="md:col-span-9 md:pt-3">
+        <h3 className="font-display text-[clamp(1.9rem,3.6vw,3.25rem)] leading-[0.95] text-[var(--heading)]">
+          {tenet.title}
+        </h3>
+        <p className="mt-5 max-w-[56ch] text-lg leading-relaxed text-[var(--text-dim)]">{tenet.text}</p>
+      </Reveal>
+    </li>
+  );
+}
 
 export default function ValuesPage() {
   return (
-    <InnerPage
-      eyebrow="OUR ETHOS // CORE PRINCIPLES"
-      title="The Genesis Code of Principles."
-      cta={
-        <Link to="/about" className="btn-cinema">
-          About Genesis →
-        </Link>
-      }
-    >
-      {/* Intro Manifesto */}
-      <div className="space-y-6 text-lg sm:text-xl text-[var(--text)] font-light leading-relaxed max-w-[65ch]">
-        <p className="text-xl sm:text-2xl text-[var(--heading)] font-normal leading-snug">
-          Values aren&apos;t just decorative words on a wall — they are the operational standards that govern every hackathon, workshop, and line of code produced within Genesis.
-        </p>
-        <p className="text-[var(--text-dim)]">
-          Whether you&apos;re entering your very first 36-hour sprint or scaling a venture-backed startup, these six core tenets guide how we build, collaborate, and grow together.
-        </p>
-      </div>
+    <PageShell>
+      <PageHero
+        eyebrow="Values"
+        title="How we run events"
+        lines={["How we run", "events."]}
+        intro="The rules we hold ourselves to when we run a hackathon or partner on one. Hold us to them."
+      />
 
-      {/* 6 Core Values Bento Grid */}
-      <div className="mt-14 space-y-6">
-        <div className="flex items-center gap-3">
-          <span className="h-px w-10 bg-[var(--heading)]/40" />
-          <span className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--heading)]">
-            Our Six Core Tenets
-          </span>
+      <section aria-labelledby="tenets-title" className="px-5 pb-24 md:px-12">
+        <div className="mx-auto max-w-[90rem]">
+          <h2 id="tenets-title" className="sr-only">
+            Our six rules
+          </h2>
+          <ol className="border-t border-[var(--border-strong)]">
+            {TENETS.map((t, i) => (
+              <Tenet key={t.title} tenet={t} index={i} />
+            ))}
+          </ol>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {VALUES.map((v) => (
-            <div
-              key={v.num}
-              className={`group relative p-8 rounded-2xl border border-white/10 bg-white/[0.025] hover:bg-white/[0.05] transition-all duration-300 flex flex-col justify-between`}
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className={`font-mono text-xs uppercase tracking-widest font-semibold ${v.accent}`}>
-                    {`${v.num} // ${v.title}`}
-                  </span>
-                </div>
-                <h3 className="font-display text-2xl text-white uppercase tracking-tight mb-1">
-                  {v.subhead}
-                </h3>
-                <p className="mt-3 text-sm md:text-base text-white/65 font-light leading-relaxed">
-                  {v.description}
-                </p>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/10 font-mono text-xs text-white/50 italic">
-                &quot;{v.tenet}&quot;
-              </div>
+      <section aria-labelledby="conduct-title" className="border-t border-[var(--border)] px-5 py-24 md:px-12 md:py-32">
+        <div className="mx-auto grid max-w-[90rem] gap-12 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <div className="flex items-center gap-3">
+              <span className="block h-2 w-2 bg-[var(--heading)]" aria-hidden />
+              <span className="overline">At every event</span>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Builder Code of Honor Section */}
-      <div className="mt-16 space-y-8 pt-12 border-t border-white/10">
-        <div className="flex items-center gap-3">
-          <span className="h-px w-10 bg-[var(--heading)]/40" />
-          <span className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--heading)]">
-            Builder Code of Honor
-          </span>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-6">
-          {CODE_OF_HONOR.map((item, i) => (
-            <div key={i} className="p-6 rounded-2xl border border-white/10 bg-white/[0.02]">
-              <h4 className="font-display text-xl text-white uppercase tracking-tight mb-2">
-                0{i + 1}. {item.title}
-              </h4>
-              <p className="text-sm text-white/65 font-light leading-relaxed">
-                {item.text}
+            <h2 id="conduct-title" className="mt-6 font-display text-[clamp(2.5rem,5vw,4.5rem)] leading-[0.9] text-[var(--heading)]">
+              Code of conduct
+            </h2>
+          </div>
+          <div className="lg:col-span-8">
+            <ul className="grid gap-4 sm:grid-cols-2">
+              {CONDUCT.map((c, i) => (
+                <Reveal as="li" key={c.title} delay={i * 0.08} className="border border-[var(--border)] p-6 md:p-8">
+                  <h3 className="font-display text-2xl leading-tight text-[var(--heading)]">{c.title}</h3>
+                  <p className="mt-3 text-base leading-relaxed text-[var(--text-dim)]">{c.text}</p>
+                </Reveal>
+              ))}
+            </ul>
+            <Reveal delay={0.2} className="mt-6 border border-[var(--heading)]/50 bg-[var(--heading)]/[0.06] p-6 md:p-8">
+              <h3 className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--heading)]">Report a problem</h3>
+              <p className="mt-3 max-w-[60ch] text-base leading-relaxed text-[var(--text)]">
+                At an event, tell any organiser straight away. Afterwards, email{" "}
+                <a href={`mailto:${CONTACT.email}`} className="underline underline-offset-4">
+                  {CONTACT.email}
+                </a>{" "}
+                or call{" "}
+                <a href={CONTACT.phoneHref} className="underline underline-offset-4">
+                  {CONTACT.phone}
+                </a>
+                .
               </p>
-            </div>
-          ))}
+            </Reveal>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Bottom CTA & Quick Links */}
-      <div className="mt-14 p-8 rounded-2xl border border-white/15 bg-gradient-to-r from-purple-900/20 via-blue-900/10 to-transparent flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div>
-          <h4 className="font-display text-2xl text-white uppercase tracking-tight">
-            Ready to Build With Us?
-          </h4>
-          <p className="text-sm text-white/60 font-light mt-1">
-            Join the next Genesis hackathon or drop into our active developer discord.
-          </p>
+      <section aria-labelledby="values-next-title" className="border-t border-[var(--border)] px-5 py-20 md:px-12">
+        <div className="mx-auto flex max-w-[90rem] flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <h2 id="values-next-title" className="max-w-[18ch] font-display text-[clamp(2rem,4vw,3.5rem)] leading-[0.95] text-[var(--heading)]">
+            See it in practice at {DELHI.name} {DELHI.edition}.
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            <Magnetic strength={0.2}>
+              <Link to={DELHI.path} className="btn-cinema">
+                About Delhi {DELHI.edition} <span aria-hidden>→</span>
+              </Link>
+            </Magnetic>
+            <Link to="/about" className="btn-ghost">About Genesis</Link>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <Link to="/events" className="btn-cinema">
-            View Events
-          </Link>
-        </div>
-      </div>
-    </InnerPage>
+      </section>
+    </PageShell>
   );
 }

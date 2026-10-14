@@ -1,329 +1,170 @@
-import React, { useRef, useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { CONTACT } from "@shared/config/site";
 import { submitFormToSheets } from "@shared/services/formSubmissionService";
-
-const INPUT_CLASS =
-  "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[var(--brand)] transition-colors disabled:opacity-60";
-
-const LABEL_CLASS =
-  "block text-[11px] font-mono uppercase tracking-wider text-white/70 mb-2";
-
-const MAX_ATTACHMENT_BYTES = 3 * 1024 * 1024; // keeps the request under Vercel's 4.5 MB body limit once base64-encoded
-const ATTACHMENT_EXTENSIONS = ["pdf", "ppt", "pptx"];
-
-function fileExtension(name) {
-  return name.split(".").pop().toLowerCase();
-}
-
-function readAsBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
+import { buildMailtoHref, isValidEmail } from "@/features/contact/submitContactLead";
+import {
+  FORM_CARD,
+  FloatingField,
+  FormAlert,
+  FormNotice,
+  Honeypot,
+  SelectField,
+  SubmitButton,
+  SuccessPanel,
+  focusFirstInvalid,
+  readHoneypot,
+} from "./FormKit";
 
 /**
- * Shared inquiry form used by the Partner and Collaborate pages.
- * Each page passes its own formType, scope options and copy.
+ * General inquiry form: name, email, organisation, phone, a scope select,
+ * a link and a message. Used by the Collaborate page; the Partner page has
+ * its own longer sponsor form.
  */
 export default function InquiryForm({
   formType,
+  title,
   scopeLabel,
   scopeOptions,
-  attachmentScopes = [],
-  attachmentLabel = "Brochure or pitch deck (optional)",
   organizationLabel,
   organizationRequired = false,
-  organizationPlaceholder,
   messageLabel,
-  messagePlaceholder,
+  messageHint,
   submitLabel,
-  successTitle,
-  successBody,
+  successTitle = "Request received",
+  successBody = `Thanks. Someone from the Genesis team will reply ${CONTACT.replyTime}.`,
 }) {
-  const initialForm = {
+  const id = (key) => `${formType}-${key}`;
+  const empty = {
     name: "",
-    organization: "",
     email: "",
+    organization: "",
     phone: "",
     partnershipType: scopeOptions[0].value,
     website: "",
     proposal: "",
   };
+  const order = [id("name"), id("email"), id("org"), id("message")];
 
-  const [form, setForm] = useState(initialForm);
-  const [status, setStatus] = useState("idle"); // idle | submitting | success | error
-  const [errorMsg, setErrorMsg] = useState("");
-  const [attachment, setAttachment] = useState(null);
-  const fileInputRef = useRef(null);
+  const [form, setForm] = useState(empty);
+  const [errors, setErrors] = useState({});
+  const [status, setStatus] = useState("idle");
+  const [alert, setAlert] = useState("");
+  const [mailtoHref, setMailtoHref] = useState("");
 
-  const showAttachment = attachmentScopes.includes(form.partnershipType);
-
-  const clearAttachment = () => {
-    setAttachment(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const update = (key, fieldId) => (e) => {
+    const value = e.target.value;
+    setForm((f) => ({ ...f, [key]: value }));
+    if (fieldId && errors[fieldId]) setErrors((prev) => ({ ...prev, [fieldId]: undefined }));
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files && e.target.files[0];
-    setErrorMsg("");
-    if (!file) {
-      setAttachment(null);
-      return;
-    }
-    if (!ATTACHMENT_EXTENSIONS.includes(fileExtension(file.name))) {
-      setErrorMsg("Please upload a PDF or PowerPoint file (.pdf, .ppt, .pptx).");
-      clearAttachment();
-      return;
-    }
-    if (file.size > MAX_ATTACHMENT_BYTES) {
-      setErrorMsg("That file is over 3 MB. Please upload a smaller file or share a link in the message.");
-      clearAttachment();
-      return;
-    }
-    setAttachment(file);
+  const validate = () => {
+    const found = {};
+    if (!form.name.trim()) found[id("name")] = "Tell us your name.";
+    if (!form.email.trim()) found[id("email")] = "Add an email so we can reply.";
+    else if (!isValidEmail(form.email)) found[id("email")] = "That email address does not look right.";
+    if (organizationRequired && !form.organization.trim()) found[id("org")] = "Add your organisation.";
+    if (!form.proposal.trim()) found[id("message")] = "Tell us a little about the idea.";
+    return found;
   };
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg("");
-
-    if (
-      !form.name.trim() ||
-      !form.email.trim() ||
-      !form.proposal.trim() ||
-      (organizationRequired && !form.organization.trim())
-    ) {
-      setErrorMsg("Please fill in the required fields.");
+    const honeypot = readHoneypot(e);
+    setAlert("");
+    const found = validate();
+    setErrors(found);
+    if (Object.keys(found).length) {
+      setAlert("Please fix the highlighted fields.");
+      focusFirstInvalid(found, order);
       return;
     }
-
     setStatus("submitting");
-
-    const data = { ...form };
-    if (showAttachment && attachment) {
-      try {
-        data.attachmentName = attachment.name;
-        data.attachmentData = await readAsBase64(attachment);
-      } catch {
-        setStatus("error");
-        setErrorMsg("Could not read that file. Please try again or remove it.");
-        return;
-      }
-    }
-
-    const result = await submitFormToSheets({ formType, data });
-
+    const scope = scopeOptions.find((o) => o.value === form.partnershipType)?.label || form.partnershipType;
+    const result = await submitFormToSheets({
+      formType,
+      data: {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        organization: form.organization.trim(),
+        website: form.website.trim(),
+        partnershipType: scope,
+        proposal: form.proposal.trim(),
+        company_website_confirm: honeypot,
+      },
+    });
     if (result.ok) {
       setStatus("success");
-      setForm(initialForm);
-      clearAttachment();
-    } else {
-      setStatus("error");
-      setErrorMsg(result.message || "Could not send your message. Please try again.");
+      setForm(empty);
+      return;
     }
+    setStatus("error");
+    setAlert(result.message);
+    setMailtoHref(
+      buildMailtoHref({
+        name: form.name,
+        email: form.email,
+        role: scope,
+        message: form.proposal,
+      }),
+    );
   };
 
-  const disabled = status === "submitting";
+  const submitting = status === "submitting";
 
   if (status === "success") {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-3xl border border-white/15 bg-[#0d0d11] p-8 sm:p-12 text-center space-y-4"
-      >
-        <h3 className="font-display text-3xl uppercase tracking-tight text-white">
-          {successTitle}
-        </h3>
-        <p className="text-sm text-white/70 max-w-md mx-auto leading-relaxed">
-          {successBody}
-        </p>
-        <button
-          type="button"
-          onClick={() => setStatus("idle")}
-          className="btn-ghost mt-4"
-        >
-          Send another
-        </button>
-      </motion.div>
-    );
+    return <SuccessPanel title={successTitle} body={successBody} onReset={() => setStatus("idle")} />;
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      className="rounded-3xl border border-white/15 bg-[#0d0d11] p-6 sm:p-10 space-y-5 shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
-    >
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div>
-          <label htmlFor={`${formType}-name`} className={LABEL_CLASS}>
-            Full name *
-          </label>
-          <input
-            id={`${formType}-name`}
-            type="text"
-            name="name"
-            autoComplete="name"
-            required
-            value={form.name}
-            onChange={handleChange}
-            className={INPUT_CLASS}
-            disabled={disabled}
-          />
+    <form onSubmit={onSubmit} noValidate aria-labelledby={id("title")} className={FORM_CARD}>
+      <div className="hero-grid pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
+      <div className="relative">
+        <Honeypot />
+        <div className="flex items-baseline justify-between gap-4 border-b border-white/10 pb-5">
+          <h3 id={id("title")} className="font-display text-2xl text-white md:text-3xl">
+            {title}
+          </h3>
+          <span className="font-mono text-[12px] uppercase tracking-[0.14em] text-white/60">* required</span>
         </div>
-        <div>
-          <label htmlFor={`${formType}-email`} className={LABEL_CLASS}>
-            Email *
-          </label>
-          <input
-            id={`${formType}-email`}
-            type="email"
-            name="email"
-            autoComplete="email"
-            required
-            value={form.email}
-            onChange={handleChange}
-            className={INPUT_CLASS}
-            disabled={disabled}
-          />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div>
-          <label htmlFor={`${formType}-org`} className={LABEL_CLASS}>
-            {organizationLabel}
-            {organizationRequired ? " *" : ""}
-          </label>
-          <input
-            id={`${formType}-org`}
-            type="text"
-            name="organization"
-            autoComplete="organization"
-            required={organizationRequired}
-            value={form.organization}
-            onChange={handleChange}
-            placeholder={organizationPlaceholder}
-            className={INPUT_CLASS}
-            disabled={disabled}
-          />
+        <div className="mt-7 grid gap-5 sm:grid-cols-2">
+          <FloatingField id={id("name")} name="name" label="Full name" autoComplete="name" required value={form.name} onChange={update("name", id("name"))} error={errors[id("name")]} disabled={submitting} />
+          <FloatingField id={id("email")} name="email" type="email" inputMode="email" label="Email" autoComplete="email" required value={form.email} onChange={update("email", id("email"))} error={errors[id("email")]} disabled={submitting} />
+          <FloatingField id={id("org")} name="organization" label={organizationLabel} autoComplete="organization" required={organizationRequired} value={form.organization} onChange={update("organization", id("org"))} error={errors[id("org")]} disabled={submitting} />
+          <FloatingField id={id("phone")} name="phone" type="tel" inputMode="tel" label="Phone or WhatsApp" autoComplete="tel" value={form.phone} onChange={update("phone")} disabled={submitting} />
+          <SelectField id={id("scope")} name="partnershipType" label={scopeLabel} value={form.partnershipType} onChange={update("partnershipType")} options={scopeOptions} disabled={submitting} />
+          <FloatingField id={id("website")} name="website" type="url" inputMode="url" label="Website or social link" autoComplete="url" value={form.website} onChange={update("website")} disabled={submitting} />
         </div>
-        <div>
-          <label htmlFor={`${formType}-phone`} className={LABEL_CLASS}>
-            Phone / WhatsApp
-          </label>
-          <input
-            id={`${formType}-phone`}
-            type="tel"
-            name="phone"
-            autoComplete="tel"
-            value={form.phone}
-            onChange={handleChange}
-            className={INPUT_CLASS}
-            disabled={disabled}
-          />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div>
-          <label htmlFor={`${formType}-scope`} className={LABEL_CLASS}>
-            {scopeLabel}
-          </label>
-          <select
-            id={`${formType}-scope`}
-            name="partnershipType"
-            value={form.partnershipType}
-            onChange={handleChange}
-            className={`${INPUT_CLASS} bg-[#16161b] cursor-pointer`}
-            disabled={disabled}
-          >
-            {scopeOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor={`${formType}-website`} className={LABEL_CLASS}>
-            Website / social link
-          </label>
-          <input
-            id={`${formType}-website`}
-            type="url"
-            name="website"
-            value={form.website}
-            onChange={handleChange}
-            placeholder="https://"
-            className={INPUT_CLASS}
-            disabled={disabled}
-          />
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor={`${formType}-message`} className={LABEL_CLASS}>
-          {messageLabel} *
-        </label>
-        <textarea
-          id={`${formType}-message`}
+        <FloatingField
+          id={id("message")}
           name="proposal"
-          rows={5}
+          as="textarea"
+          label={messageLabel}
+          hint={messageHint}
+          className="mt-5"
           required
           value={form.proposal}
-          onChange={handleChange}
-          placeholder={messagePlaceholder}
-          className={`${INPUT_CLASS} resize-none`}
-          disabled={disabled}
+          onChange={update("proposal", id("message"))}
+          error={errors[id("message")]}
+          disabled={submitting}
         />
-      </div>
 
-      {showAttachment && (
-        <div>
-          <label htmlFor={`${formType}-attachment`} className={LABEL_CLASS}>
-            {attachmentLabel}
-          </label>
-          <input
-            id={`${formType}-attachment`}
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.ppt,.pptx"
-            onChange={handleFileChange}
-            className={`${INPUT_CLASS} cursor-pointer file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-xs file:font-mono file:uppercase file:text-white`}
-            disabled={disabled}
-          />
-          <p className="mt-2 text-[11px] text-white/40">
-            PDF or PowerPoint, up to 3 MB.
-          </p>
+        <div className="mt-7 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <FormNotice />
+          <SubmitButton submitting={submitting} label={submitLabel} />
         </div>
-      )}
 
-      {errorMsg && (
-        <div
-          role="alert"
-          className="text-xs font-mono text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-xl"
-        >
-          {errorMsg}
+        <div className="mt-6">
+          <FormAlert message={alert}>
+            {mailtoHref ? (
+              <a href={mailtoHref} className="mt-2 inline-flex min-h-[44px] items-center text-white underline underline-offset-4">
+                Email us instead →
+              </a>
+            ) : null}
+          </FormAlert>
         </div>
-      )}
-
-      <div className="pt-2">
-        <button
-          type="submit"
-          disabled={disabled}
-          className="btn-cinema w-full sm:w-auto justify-center disabled:opacity-50"
-        >
-          {disabled ? "Sending…" : submitLabel}
-        </button>
       </div>
     </form>
   );

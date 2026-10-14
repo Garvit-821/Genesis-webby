@@ -1,32 +1,28 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import InnerPage from "../shared/InnerPage";
+import { PageShell, PageHero } from "@widgets/layout";
+import { CONTACT, DELHI } from "@shared/config/site";
 import Contact from "@/features/contact/Contact";
 
 export default function ContactPage() {
   return (
-    <InnerPage
-      eyebrow="Connect /"
-      title="Contact Us"
-      cta={
-        <div className="flex flex-wrap gap-4">
+    <PageShell>
+      <PageHero
+        eyebrow="Contact"
+        title="Contact Genesis"
+        lines={["Contact", "Genesis."]}
+        intro={`Sponsors and partners: email ${CONTACT.email} or call ${CONTACT.phone}. Students and campus communities: use the form below. We reply ${CONTACT.replyTime}.`}
+      >
+        <div className="mt-10 flex flex-wrap gap-3">
           <Link to="/partner" className="btn-cinema">
-            Partner With Us →
+            Sponsor an event <span aria-hidden>→</span>
           </Link>
-          <a
-            href="https://www.linkedin.com/company/genesishacks/posts/?feedView=all"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-ghost"
-          >
-            Message on LinkedIn
-          </a>
+          <Link to={DELHI.path} className="btn-ghost">
+            {DELHI.name} {DELHI.edition}
+          </Link>
         </div>
-      }
-    >
-      <div className="-mt-8">
-        <Contact />
-      </div>
-    </InnerPage>
+      </PageHero>
+      <Contact />
+    </PageShell>
   );
 }

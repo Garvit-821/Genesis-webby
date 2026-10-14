@@ -1,295 +1,194 @@
 import React from "react";
-import LegalPage from "../shared/LegalPage";
+import { Link } from "react-router-dom";
+import LegalPage, { Callout, List } from "../shared/LegalPage";
+import { BRAND, CONTACT, DELHI, PUNE, SITE_URL } from "@shared/config/site";
+
+/*
+ * Terms of service for genesishacks.com.
+ *
+ * NEEDS INPUT before legal sign-off (audit G05):
+ *   - Registered legal entity name, type and postal address.
+ *   - City whose courts have jurisdiction (currently "courts in India").
+ * Have a lawyer review this page.
+ */
+
+const LAST_UPDATED = "13 October 2026";
+const DOMAIN = SITE_URL.replace(/^https?:\/\//, "");
 
 const SECTIONS = [
   {
-    id: "acceptance",
-    title: "Acceptance of Terms",
+    id: "about-these-terms",
+    title: "About these terms",
     content: (
       <>
         <p>
-          By accessing or using the Genesis website at{" "}
-          <strong>genesishacks.in</strong> (the &quot;Site&quot;), participating in any
-          Genesis community programme, or interacting with any Genesis service,
-          you confirm that you have read, understood, and agree to be bound by
-          these Terms of Service (&quot;Terms&quot;).
+          These terms apply when you use <strong>{DOMAIN}</strong> (the &ldquo;site&rdquo;), which is run by{" "}
+          {BRAND.name}, India (&ldquo;Genesis&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;). By using the site you agree
+          to them. If you do not agree, please do not use the site.
         </p>
-        <p>
-          If you do not agree with any part of these Terms, you must not access
-          the Site or use our services. These Terms apply to all visitors, users,
-          and anyone else who accesses or uses the Site.
-        </p>
-        <div className="legal-callout">
-          <strong>Important:</strong> These Terms constitute a legally binding
-          agreement between you and Genesis (operated by Genesis Hacks, India). Please
-          read them carefully before proceeding.
-        </div>
+        <Callout>
+          <strong>In plain words.</strong> Use the site honestly, do not try to break it, and know that a sponsorship or
+          event place is only confirmed once we both sign a separate written agreement or you receive a confirmed
+          registration.
+        </Callout>
       </>
     ),
   },
   {
-    id: "description",
-    title: "Description of Service",
+    id: "what-the-site-is-for",
+    title: "What the site is for",
     content: (
       <>
+        <p>The site lets you:</p>
+        <List>
+          <li>learn what Genesis does for companies and for student builders;</li>
+          <li>read about our own series, Hackers Occupied, and events we have run or partnered on;</li>
+          <li>send us a sponsorship, partnership, collaboration or crew enquiry;</li>
+          <li>register interest in upcoming events such as {DELHI.name}; and</li>
+          <li>download a certificate if you took part in {PUNE.name}.</li>
+        </List>
         <p>
-          Genesis is a developer community platform that provides information
-          about hackathons, workshops, meetups, and other technical events. We
-          connect builders, makers, and technologists across India and beyond.
-        </p>
-        <p>Our services include, but are not limited to:</p>
-        <ul className="legal-list">
-          <li>Publishing event listings, schedules, and community updates</li>
-          <li>Facilitating contact and communication with our team</li>
-          <li>Showcasing community galleries, values, and mission content</li>
-          <li>Providing career and opportunity information within our ecosystem</li>
-        </ul>
-        <p>
-          <strong>Third-party platforms:</strong> Registration for events is
-          often processed through third-party platforms such as Luma or Lu.ma.
-          Activity on those platforms is governed by their respective terms of
-          service and privacy policies, which are separate from and independent
-          of these Terms.
-        </p>
-        <p>
-          Event details, dates, and venues are subject to change. We endeavour to
-          keep information accurate but cannot guarantee real-time correctness.
+          Each event has its own registration process, rules and code of conduct, which apply alongside these terms
+          when you take part.
         </p>
       </>
     ),
   },
   {
     id: "acceptable-use",
-    title: "Acceptable Use",
+    title: "Using the site properly",
+    content: (
+      <>
+        <p>When you use the site, you agree not to:</p>
+        <List>
+          <li>send false, misleading or someone else&rsquo;s details through a form;</li>
+          <li>use the certificate tool to look up, or try to guess, other people&rsquo;s details;</li>
+          <li>upload files that contain malware or that you have no right to share;</li>
+          <li>try to break, overload, scan or get around the site&rsquo;s security;</li>
+          <li>scrape the site in a way that harms its performance; or</li>
+          <li>use the site for anything unlawful.</li>
+        </List>
+        <p>We may block access or ignore submissions that break these rules.</p>
+      </>
+    ),
+  },
+  {
+    id: "enquiries-and-agreements",
+    title: "Enquiries, sponsorships and agreements",
     content: (
       <>
         <p>
-          You agree to use the Site only for lawful purposes and in a manner that
-          does not infringe the rights of others or restrict their use and
-          enjoyment of the Site.
+          Sending a form does not create a contract. Prices, packages and deliverables for a sponsorship or partnership
+          are agreed separately, in writing, before any payment or commitment.
         </p>
-        <p>Prohibited conduct includes:</p>
-        <ul className="legal-list">
-          <li>
-            Automated scraping or crawling that degrades the availability or
-            performance of the Site
-          </li>
-          <li>
-            Introducing viruses, malware, ransomware, or other malicious code
-          </li>
-          <li>
-            Attempting to gain unauthorised access to any part of the Site or
-            its related systems
-          </li>
-          <li>
-            Impersonating Genesis, its team members, or any other person or
-            entity
-          </li>
-          <li>
-            Harassing, threatening, or intimidating any community member online
-            or offline
-          </li>
-          <li>
-            Transmitting unsolicited commercial communications (spam) using any
-            contact information obtained from the Site
-          </li>
-          <li>
-            Using the Site in any way that could damage, disable, or overburden
-            our infrastructure
-          </li>
-        </ul>
         <p>
-          We reserve the right to restrict access to the Site at our sole
-          discretion if we reasonably believe a violation of these Terms has
-          occurred.
+          You confirm that what you send us is accurate and that you are allowed to share it, including any deck or
+          document you upload. We treat sponsor decks as confidential and handle them as our{" "}
+          <Link to="/privacy">privacy policy</Link> describes.
+        </p>
+        <p>We reply to genuine enquiries {CONTACT.replyTime}.</p>
+      </>
+    ),
+  },
+  {
+    id: "events",
+    title: "Events, dates and changes",
+    content: (
+      <>
+        <p>
+          Event details on the site, such as dates, venues, tracks and team sizes, can change. Where we mark something
+          as tentative (for example, the dates of {DELHI.name}), it is a plan, not a promise. Figures marked as
+          projections are estimates, not results.
+        </p>
+        <p>
+          Photos and videos are taken at Genesis events and may appear on this site and our social channels. If you
+          appear in one and want it removed, email <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a> and we will
+          take it down.
         </p>
       </>
     ),
   },
   {
-    id: "intellectual-property",
-    title: "Intellectual Property",
+    id: "other-brands",
+    title: "Other companies' names and logos",
+    content: (
+      <p>
+        Names and logos of other companies belong to their owners. When a brand appears on the site, it means the
+        brand sponsored or took part in an event that Genesis ran or partnered on. It does not mean that brand endorses
+        Genesis. If you represent a brand and want its name or logo changed or removed, email us.
+      </p>
+    ),
+  },
+  {
+    id: "our-content",
+    title: "Our content",
+    content: (
+      <p>
+        The site&rsquo;s text, design, photos and the Genesis name and logo belong to Genesis or are used with
+        permission. You may share links to the site and quote short passages with credit. Please ask before reusing
+        anything else.
+      </p>
+    ),
+  },
+  {
+    id: "certificates",
+    title: "Certificates",
+    content: (
+      <p>
+        Certificates are issued only to registered participants, using the email and phone they registered with. A
+        certificate confirms participation in the named event. Altering a certificate or presenting someone else&rsquo;s
+        as your own is not allowed, and we may confirm or deny a certificate&rsquo;s authenticity if asked.
+      </p>
+    ),
+  },
+  {
+    id: "other-sites",
+    title: "Links to other sites",
+    content: (
+      <p>
+        The site links to other services, such as event registration platforms and social networks. We do not control
+        them, and their own terms and privacy policies apply when you use them.
+      </p>
+    ),
+  },
+  {
+    id: "liability",
+    title: "Disclaimers and liability",
     content: (
       <>
         <p>
-          All content on the Site — including but not limited to text, graphics,
-          logos, photographs, videos, data compilations, and software — is the
-          property of Genesis, Genesis Hacks, or its content licensors and is protected
-          by applicable intellectual property laws.
+          We work to keep the site accurate and available, but we provide it &ldquo;as is&rdquo;, without guarantees
+          that it will always be error-free or online.
         </p>
         <p>
-          <strong>What you may do:</strong> You may browse and view Site content
-          for personal, non-commercial purposes. You may share links to pages on
-          the Site, and you may quote brief excerpts for commentary or reporting
-          provided you clearly attribute Genesis as the source.
-        </p>
-        <p>
-          <strong>What you may not do:</strong> You may not reproduce, distribute,
-          modify, create derivative works, publicly display, sell, or commercially
-          exploit any content from the Site without our express prior written
-          permission.
-        </p>
-        <div className="legal-callout">
-          The &quot;Genesis&quot; name, logo, and related marks are trademarks of Genesis Hacks.
-          Unauthorised use of these marks is strictly prohibited.
-        </div>
-        <p>
-          To request permission for any use not covered above, contact us at{" "}
-          <a href="mailto:hello@genesishacks.in">hello@genesishacks.in</a>.
+          To the extent the law allows, Genesis is not liable for indirect or consequential loss arising from your use
+          of the site. Nothing in these terms limits liability that cannot be limited under Indian law.
         </p>
       </>
     ),
   },
   {
-    id: "user-content",
-    title: "User-Submitted Content",
+    id: "law",
+    title: "Governing law",
     content: (
-      <>
-        <p>
-          If you submit any content to us (for example through the contact form,
-          event applications, or community feedback), you grant Genesis a
-          worldwide, non-exclusive, royalty-free licence to use, reproduce, and
-          display that content solely for the purpose of operating and improving
-          our services.
-        </p>
-        <p>You represent and warrant that:</p>
-        <ul className="legal-list">
-          <li>You own or have the rights to the content you submit</li>
-          <li>
-            Your content does not violate any third-party intellectual property,
-            privacy, or publicity rights
-          </li>
-          <li>
-            Your content is truthful and does not contain false or misleading
-            information
-          </li>
-        </ul>
-        <p>
-          We reserve the right to remove or decline any submitted content at our
-          discretion without notice.
-        </p>
-      </>
+      <p>
+        These terms are governed by the laws of India, and disputes about them are subject to the jurisdiction of the
+        courts in India. {/* NEEDS INPUT: name the city whose courts have jurisdiction. */}
+      </p>
     ),
   },
   {
-    id: "disclaimers",
-    title: "Disclaimers & Limitation of Liability",
+    id: "changes-and-contact",
+    title: "Changes and contact",
     content: (
       <>
         <p>
-          <strong>As-is provision.</strong> The Site and all its content are
-          provided on an &quot;as is&quot; and &quot;as available&quot; basis, without any warranties
-          of any kind, express or implied, including but not limited to warranties
-          of merchantability, fitness for a particular purpose, accuracy, or
-          non-infringement.
+          We may update these terms. When we do, we change the date at the top of this page. Continuing to use the site
+          after a change means you accept the updated terms.
         </p>
         <p>
-          <strong>No guarantee of availability.</strong> We do not warrant that
-          the Site will be uninterrupted, error-free, secure, or free of viruses
-          or other harmful components.
-        </p>
-        <p>
-          <strong>Limitation of liability.</strong> To the fullest extent
-          permitted by applicable law, Genesis and Genesis Hacks shall not be liable for
-          any indirect, incidental, special, consequential, or punitive damages
-          arising out of or in connection with your use of (or inability to use)
-          the Site, even if advised of the possibility of such damages.
-        </p>
-        <div className="legal-callout">
-          Some jurisdictions do not allow the exclusion of certain warranties or
-          the limitation of liability for certain types of damages. In such
-          jurisdictions, our liability shall be limited to the maximum extent
-          permitted by law.
-        </div>
-      </>
-    ),
-  },
-  {
-    id: "third-party-links",
-    title: "Third-Party Links",
-    content: (
-      <>
-        <p>
-          The Site may contain links to third-party websites, platforms, or
-          resources (including social media, event registration platforms, and
-          sponsor websites). These links are provided for your convenience only.
-        </p>
-        <p>
-          We have no control over and assume no responsibility for the content,
-          privacy policies, terms, or practices of any third-party websites. We
-          do not endorse or make any representations about such third-party sites.
-          Your access to and use of linked websites is entirely at your own risk.
-        </p>
-        <p>
-          We encourage you to review the terms and privacy policies of any
-          third-party websites you visit.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: "modifications",
-    title: "Modifications to Terms",
-    content: (
-      <>
-        <p>
-          We reserve the right to update or modify these Terms at any time at our
-          sole discretion. When we make changes, we will update the &quot;Last updated&quot;
-          date at the top of this page.
-        </p>
-        <p>
-          Your continued use of the Site following the posting of revised Terms
-          constitutes your acceptance of the changes. We encourage you to review
-          these Terms periodically to stay informed of any updates.
-        </p>
-        <p>
-          If a change is material, we will endeavour to provide reasonable notice
-          (for example, via a notice on the Site) before the new Terms take
-          effect.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: "governing-law",
-    title: "Governing Law & Disputes",
-    content: (
-      <>
-        <p>
-          These Terms are governed by and construed in accordance with the laws of
-          India, without regard to its conflict of law provisions. You agree that
-          any legal action or dispute arising out of or related to these Terms or
-          the Site shall be subject to the exclusive jurisdiction of the courts
-          located in India.
-        </p>
-        <p>
-          Before initiating any formal legal proceedings, we encourage you to
-          first attempt to resolve any dispute informally by contacting us at{" "}
-          <a href="mailto:hello@genesishacks.in">hello@genesishacks.in</a>. We will make good
-          faith efforts to address your concerns.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: "contact",
-    title: "Contact & Enquiries",
-    content: (
-      <>
-        <p>
-          If you have any questions, concerns, or requests relating to these Terms
-          of Service, please reach out to us:
-        </p>
-        <ul className="legal-list">
-          <li>
-            Email:{" "}
-            <a href="mailto:hello@genesishacks.in">hello@genesishacks.in</a>
-          </li>
-          <li>Website: genesishacks.in</li>
-          <li>Community: Genesis, operated by Genesis Hacks, India</li>
-        </ul>
-        <p>
-          We aim to respond to all enquiries within 5 business days.
+          Questions: <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a> or{" "}
+          <a href={CONTACT.phoneHref}>{CONTACT.phone}</a>. We reply {CONTACT.replyTime}.
         </p>
       </>
     ),
@@ -300,8 +199,10 @@ export default function TermsPage() {
   return (
     <LegalPage
       type="terms"
+      title="Terms of service"
+      intro="The rules for using genesishacks.com, sending us enquiries and taking part in Genesis events."
       sections={SECTIONS}
-      lastUpdated="20 July 2026"
+      lastUpdated={LAST_UPDATED}
     />
   );
 }

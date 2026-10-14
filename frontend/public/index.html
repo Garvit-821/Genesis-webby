@@ -1,12 +1,20 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-IN">
     <head>
         <meta charset="utf-8" />
-        <link rel="preload" href="/fonts/Gridular-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#181818" />
-        <meta name="description" content="Genesis — a hybrid freelance community where students and freelancers learn, earn and grow with real gigs, events and collaborations." />
-        <link rel="icon" type="image/png" href="/images/logo.png" />
+        <meta name="color-scheme" content="dark" />
+
+        <title>Genesis Hacks: hackathon partnerships in India</title>
+        <meta name="description" content="Genesis connects companies with India's student hackathon and builder community. We curate brand partnerships with independent hackathons and run our own series, Hackers Occupied." />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://www.genesishacks.com/" />
+
+        <!-- Fonts in use: Gridular (display), Aeonik (body), Leirtag Aquelli (script accent) -->
+        <link rel="preload" href="/fonts/Gridular-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+        <link rel="preload" href="/fonts/Aeonik-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+        <link rel="preload" href="/fonts/Leirtag-Aquelli-Demo-BF6704dcddd2b58.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
         <style>
             @font-face {
                 font-family: "Gridular";
@@ -31,30 +39,95 @@
                 font-style: normal;
                 font-display: swap;
             }
+
+            /* Static prerendered content (replaced when the app mounts) */
+            html { background: #181818; }
+            body { margin: 0; background: #181818; color: #f5f0ff; font-family: "Aeonik", system-ui, sans-serif; }
+            .prerender { max-width: 72rem; margin: 0 auto; padding: 160px 20px 80px; line-height: 1.6; }
+            .prerender h1 { font-family: "Gridular", system-ui, sans-serif; color: #e2efba; font-weight: 400; text-transform: uppercase; font-size: clamp(2.5rem, 7vw, 6rem); line-height: 0.95; margin: 0 0 24px; }
+            .prerender p { max-width: 60ch; font-size: 1.125rem; color: rgba(245, 240, 255, 0.8); }
+            .prerender a { color: #e2efba; }
+            .prerender nav ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 20px; }
         </style>
-        <title>Genesis · Learn · Earn · Grow</title>
+
+        <!-- Icons -->
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.webmanifest" />
 
         <!-- Open Graph -->
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Genesis" />
-        <meta property="og:title" content="Genesis · Learn · Earn · Grow" />
-        <meta property="og:description" content="A hybrid freelance community where students and freelancers learn, earn and grow with real gigs, events and collaborations." />
-        <meta property="og:image" content="https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop" />
-        <meta property="og:url" content="https://genesishacks.in/" />
+        <meta property="og:site_name" content="Genesis Hacks" />
+        <meta property="og:locale" content="en_IN" />
+        <meta property="og:title" content="Genesis Hacks: hackathon partnerships in India" />
+        <meta property="og:description" content="Genesis connects companies with India's student hackathon and builder community. We curate brand partnerships with independent hackathons and run our own series, Hackers Occupied." />
+        <meta property="og:url" content="https://www.genesishacks.com/" />
+        <meta property="og:image" content="https://www.genesishacks.com/images/og-genesis.jpg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Genesis Hacks: reach India's student builders at hackathons. Next up: Hackers Occupied Delhi 2027." />
 
-        <!-- Twitter / X Card -->
+        <!-- Twitter / X card -->
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Genesis · Learn · Earn · Grow" />
-        <meta name="twitter:description" content="A hybrid freelance community where students and freelancers learn, earn and grow with real gigs, events and collaborations." />
-        <meta name="twitter:image" content="https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop" />
+        <meta name="twitter:title" content="Genesis Hacks: hackathon partnerships in India" />
+        <meta name="twitter:description" content="Genesis connects companies with India's student hackathon and builder community. We curate brand partnerships with independent hackathons and run our own series, Hackers Occupied." />
+        <meta name="twitter:image" content="https://www.genesishacks.com/images/og-genesis.jpg" />
+        <meta name="twitter:image:alt" content="Genesis Hacks: reach India's student builders at hackathons. Next up: Hackers Occupied Delhi 2027." />
+
+        <!-- Structured data: who we are (audit SE03) -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@graph": [
+                    {
+                        "@type": "Organization",
+                        "@id": "https://www.genesishacks.com/#organization",
+                        "name": "Genesis Hacks",
+                        "alternateName": "Genesis",
+                        "url": "https://www.genesishacks.com/",
+                        "logo": "https://www.genesishacks.com/icon-512.png",
+                        "description": "Genesis connects companies with India's student hackathon and builder community. We curate brand partnerships with independent hackathons and run our own series, Hackers Occupied.",
+                        "email": "partner@genesishacks.com",
+                        "telephone": "+91 70433 88006",
+                        "areaServed": "IN",
+                        "sameAs": [
+                            "https://www.instagram.com/genesishacks/",
+                            "https://www.linkedin.com/company/genesishacks/"
+                        ],
+                        "contactPoint": {
+                            "@type": "ContactPoint",
+                            "contactType": "sales",
+                            "email": "partner@genesishacks.com",
+                            "telephone": "+91 70433 88006",
+                            "areaServed": "IN",
+                            "availableLanguage": ["en", "hi"]
+                        }
+                    },
+                    {
+                        "@type": "WebSite",
+                        "@id": "https://www.genesishacks.com/#website",
+                        "name": "Genesis Hacks",
+                        "url": "https://www.genesishacks.com/",
+                        "inLanguage": "en-IN",
+                        "publisher": { "@id": "https://www.genesishacks.com/#organization" }
+                    }
+                ]
+            }
+        </script>
 
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
     </head>
     <body>
-        <!-- Force-load Gridular font for DevTools console -->
-        <span style="font-family: 'Gridular'; position: absolute; opacity: 0; pointer-events: none;" aria-hidden="true">GENESIS HACKS</span>
-        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <noscript>
+            <div class="prerender">
+                <p><strong>Genesis Hacks</strong></p>
+                <p>Genesis connects companies with India's student hackathon and builder community. We curate brand partnerships with independent hackathons and run our own series, Hackers Occupied. Next up: Hackers Occupied Delhi, Delhi NCR, mid-January 2027 (tentative).</p>
+                <p>Sponsors and partners: <a href="mailto:partner@genesishacks.com">partner@genesishacks.com</a> or <a href="tel:+917043388006">+91 70433 88006</a>.</p>
+                <p>This site works best with JavaScript turned on.</p>
+            </div>
+        </noscript>
         <div id="root"></div>
-        <!-- PostHog loads only after consent — see shared/consent/consent.js -->
+        <!-- PostHog loads only after consent: see shared/consent/consent.js -->
     </body>
 </html>

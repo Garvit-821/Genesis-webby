@@ -1,0 +1,129 @@
+/* Events archive, Pune recap and posters. Page-local styles. */
+
+/* ─── Posters ─────────────────────────────────────────── */
+.event-poster__scan {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 3px,
+    rgba(0, 0, 0, 0.18) 3px,
+    rgba(0, 0, 0, 0.18) 4px
+  );
+  mix-blend-mode: multiply;
+}
+
+.event-poster__cell {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 600ms ease;
+}
+
+.event-poster:hover .event-poster__cell,
+.event-poster-host:hover .event-poster__cell,
+.event-poster-host:focus-visible .event-poster__cell {
+  transform: scale(0.62) rotate(45deg);
+}
+
+.event-poster__pixels {
+  transition: transform 1200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.event-poster:hover .event-poster__pixels,
+.event-poster-host:hover .event-poster__pixels {
+  transform: scale(1.05);
+}
+
+/* ─── Archive index list ──────────────────────────────── */
+.archive-row {
+  position: relative;
+  isolation: isolate;
+}
+
+.archive-row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--heading);
+  transform: scaleY(0);
+  transform-origin: bottom center;
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.archive-row:hover::before,
+.archive-row:focus-visible::before {
+  transform: scaleY(1);
+  transform-origin: top center;
+}
+
+.archive-row:hover .archive-row__ink,
+.archive-row:focus-visible .archive-row__ink {
+  color: #181818;
+}
+
+.archive-row:hover .archive-row__muted,
+.archive-row:focus-visible .archive-row__muted {
+  color: rgba(24, 24, 24, 0.78);
+}
+
+.archive-row:hover .archive-role,
+.archive-row:focus-visible .archive-role {
+  border-color: rgba(24, 24, 24, 0.5);
+  color: #181818;
+}
+
+.archive-row__arrow {
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.archive-row:hover .archive-row__arrow,
+.archive-row:focus-visible .archive-row__arrow {
+  transform: translateX(6px) rotate(-45deg);
+}
+
+.archive-year {
+  -webkit-text-stroke: 1px rgba(226, 239, 186, 0.55);
+  color: transparent;
+}
+
+/* ─── Filter chips ────────────────────────────────────── */
+.archive-chip {
+  min-height: 44px;
+  border: 1px solid var(--border-strong);
+  padding: 0 14px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-dim);
+  background: transparent;
+  transition:
+    background-color 240ms ease,
+    color 240ms ease,
+    border-color 240ms ease;
+}
+
+.archive-chip:hover {
+  border-color: var(--heading);
+  color: var(--text);
+}
+
+.archive-chip[aria-pressed="true"] {
+  background: var(--heading);
+  border-color: var(--heading);
+  color: #181818;
+}
+
+.archive-chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-poster__cell,
+  .event-poster__pixels,
+  .archive-row::before,
+  .archive-row__arrow {
+    transition: none !important;
+  }
+}

@@ -6,3 +6,5 @@ export { default as Marquee } from "./Marquee";
 export { default as Footer } from "./Footer";
 export { default as ScribbleDivider } from "./ScribbleDivider";
 export { default as HugeWordmark } from "./HugeWordmark";
+export { default as PageShell } from "./PageShell";
+export { default as PageHero } from "./PageHero";

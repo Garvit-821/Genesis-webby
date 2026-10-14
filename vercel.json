@@ -2,14 +2,77 @@
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/build",
   "installCommand": "echo 'skip root install'",
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/sponsors",
+      "destination": "/partner",
+      "permanent": true
+    },
+    {
+      "source": "/sponsor",
+      "destination": "/partner",
+      "permanent": true
+    },
+    {
+      "source": "/partners",
+      "destination": "/partner",
+      "permanent": true
+    },
+    {
+      "source": "/hackers-occupied-pune",
+      "destination": "/events/hackers-occupied-pune",
+      "permanent": true
+    },
+    {
+      "source": "/hackers-occupied-delhi",
+      "destination": "/events/hackers-occupied-delhi",
+      "permanent": true
+    },
+    {
+      "source": "/certificate",
+      "destination": "/certificates/hackers-occupied-pune",
+      "permanent": true
+    },
+    {
+      "source": "/event-membership",
+      "destination": "/collaborate",
+      "permanent": true
+    },
+    {
+      "source": "/admin-events",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/guide/introduction/genesis-hackcon",
+      "destination": "/guide",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/guide/:category/:slug",
+      "destination": "/guide.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
         {
           "key": "Permissions-Policy",
           "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
@@ -20,38 +83,62 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://formspree.io; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.posthog.com https://us.i.posthog.com https://eu.i.posthog.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.unsplash.com https://*.posthog.com; font-src 'self' data:; connect-src 'self' blob: https://*.posthog.com https://us.i.posthog.com https://eu.i.posthog.com https://www.gstatic.com https://formspree.io https://api.resend.com; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self' blob:; manifest-src 'self'"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.posthog.com https://us.i.posthog.com https://eu.i.posthog.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.posthog.com; font-src 'self' data:; connect-src 'self' blob: https://*.posthog.com https://us.i.posthog.com https://eu.i.posthog.com; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self' blob:; manifest-src 'self'"
         }
       ]
     },
     {
       "source": "/fonts/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/model/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/images/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=2592000" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000"
+        }
       ]
     },
     {
       "source": "/gallery/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=2592000" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000"
+        }
+      ]
+    },
+    {
+      "source": "/(favicon.ico|apple-touch-icon.png|icon-192.png|icon-512.png)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000"
+        }
       ]
     },
     {
       "source": "/static/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     }
   ]

@@ -1,8 +1,10 @@
 import React from "react";
+import { VelocityMarquee } from "@shared/motion";
 
 /**
- * Collaboration brands. Prefer /brand-logos/*.webp (optimized).
- * Missing logo → text fallback until asset is added + converted.
+ * Brands seen at events Genesis has run or partnered on.
+ * NEEDS_CONFIRMATION: written approval to show each name (audit C09).
+ * Prefer /brand-logos/*.webp; names without a logo render as type.
  */
 const BRANDS = [
   { name: "AbhiBus", logo: null },
@@ -38,8 +40,7 @@ function BrandMark({ brand }) {
       <span
         role="img"
         aria-label={brand.name}
-        title={brand.name}
-        className="inline-block h-32 w-40 shrink-0 opacity-90 transition-opacity duration-300 hover:opacity-100 md:h-40 md:w-48"
+        className="inline-block h-24 w-36 shrink-0 opacity-90 transition-opacity duration-300 hover:opacity-100 md:h-32 md:w-44"
         style={{
           backgroundColor: "var(--heading)",
           WebkitMaskImage: `url(${brand.logo})`,
@@ -54,49 +55,35 @@ function BrandMark({ brand }) {
       />
     );
   }
-
   return (
-    <span className="font-display text-3xl leading-none text-[var(--heading)] md:text-5xl">
+    <span className="whitespace-nowrap font-display text-3xl leading-none text-[var(--heading)] md:text-5xl">
       {brand.name}
     </span>
   );
 }
 
 export default function Marquee() {
-  const track = [...BRANDS, ...BRANDS, ...BRANDS];
-
   return (
     <section
-      className="relative overflow-hidden border-y border-border bg-transparent py-6 md:py-10"
-      aria-label="Brands we've collaborated with"
+      aria-labelledby="brand-strip-title"
+      className="relative z-[3] overflow-hidden border-y border-white/10 bg-[#181818] py-8 md:py-12"
     >
-      <div className="overflow-hidden py-3 md:py-4">
-        <div
-          className="inline-flex items-center gap-10 whitespace-nowrap md:gap-16"
-          style={{
-            animation: "marquee-ltr 70s linear infinite",
-          }}
-        >
-          {track.map((brand, i) => (
-            <React.Fragment key={`${brand.name}-${i}`}>
-              <BrandMark brand={brand} />
-              <span
-                className="font-display text-2xl leading-none text-[var(--text-faint)] md:text-4xl"
-                aria-hidden
-              >
-                ✦
-              </span>
-            </React.Fragment>
-          ))}
-        </div>
+      <div className="mx-auto mb-4 flex max-w-[90rem] items-center justify-between gap-4 px-5 md:mb-6 md:px-10">
+        <h2 id="brand-strip-title" className="font-mono text-[12px] uppercase tracking-[0.2em] text-[var(--text-faint)]">
+          Brands at events Genesis has run or partnered on
+        </h2>
+        <span aria-hidden className="hidden font-mono text-[12px] uppercase tracking-[0.2em] text-[var(--text-faint)] md:inline">
+          {BRANDS.length} brands
+        </span>
       </div>
-
-      <style>{`
-        @keyframes marquee-ltr {
-          from { transform: translateX(-33.333%); }
-          to { transform: translateX(0); }
-        }
-      `}</style>
+      <VelocityMarquee baseVelocity={-1.6} copies={3} itemClassName="gap-12 pr-12 md:gap-16 md:pr-16">
+        {BRANDS.map((brand) => (
+          <React.Fragment key={brand.name}>
+            <BrandMark brand={brand} />
+            <span aria-hidden className="font-display text-2xl text-white/25 md:text-4xl">/</span>
+          </React.Fragment>
+        ))}
+      </VelocityMarquee>
     </section>
   );
 }

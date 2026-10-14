@@ -1,259 +1,285 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { LANDING } from "@shared/constants/testIds";
-import { CONTACT_EMAIL, buildMailtoHref } from "./submitContactLead";
+import { CONTACT, DELHI, SOCIALS } from "@shared/config/site";
+import { Magnetic, Reveal, SplitText } from "@shared/motion";
 import { submitFormToSheets } from "@shared/services/formSubmissionService";
+import {
+  FORM_CARD,
+  FloatingField,
+  FormAlert,
+  FormNotice,
+  Honeypot,
+  SelectField,
+  SubmitButton,
+  SuccessPanel,
+  focusFirstInvalid,
+  readHoneypot,
+} from "@/features/forms/FormKit";
+import { buildMailtoHref, isValidEmail } from "./submitContactLead";
 
-const SOCIALS = [
-  {
-    label: "Instagram",
-    href: "https://www.instagram.com/genesishacks/?hl=en",
-  },
-  {
-    label: "LinkedIn",
-    href: "https://www.linkedin.com/company/genesishacks/posts/?feedView=all",
-  },
+/** Brands first: the audience this page exists for (audit P05). */
+const ROLE_OPTIONS = [
+  { value: "brand", label: "Company / brand" },
+  { value: "student", label: "Student or campus community" },
+  { value: "organiser", label: "Organiser of a hackathon" },
+  { value: "other", label: "Other" },
 ];
 
+const EMPTY = { name: "", email: "", role: "brand", message: "" };
+const ORDER = ["contact-name", "contact-email", "contact-message"];
+
+function validate(form) {
+  const errors = {};
+  if (!form.name.trim()) errors["contact-name"] = "Tell us your name.";
+  if (!form.email.trim()) errors["contact-email"] = "Add an email so we can reply.";
+  else if (!isValidEmail(form.email)) errors["contact-email"] = "That email address does not look right.";
+  if (!form.message.trim()) errors["contact-message"] = "Write a short message.";
+  return errors;
+}
+
+/**
+ * Contact section, used on the home page and on /contact.
+ * Sponsors get the direct line; students and campus groups get the form.
+ */
 export default function Contact() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    role: "freelancer",
-    message: "",
-  });
+  const [form, setForm] = useState(EMPTY);
+  const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle"); // idle | submitting | success | error
-  const [error, setError] = useState("");
+  const [alert, setAlert] = useState("");
   const [mailtoHref, setMailtoHref] = useState("");
+
+  const update = (key) => (e) => {
+    const value = e.target.value;
+    setForm((f) => ({ ...f, [key]: value }));
+    const id = `contact-${key}`;
+    if (errors[id]) setErrors((prev) => ({ ...prev, [id]: undefined }));
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-
-    if (!form.name || !form.email || !form.message) {
-      setError("Please fill in name, email and message.");
+    const honeypot = readHoneypot(e);
+    setAlert("");
+    const found = validate(form);
+    setErrors(found);
+    if (Object.keys(found).length) {
+      setAlert("Please fix the highlighted fields.");
+      focusFirstInvalid(found, ORDER);
       return;
     }
 
     setStatus("submitting");
+    const roleLabel = ROLE_OPTIONS.find((o) => o.value === form.role)?.label || form.role;
     const result = await submitFormToSheets({
       formType: "contact",
-      data: form,
+      data: {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        role: roleLabel,
+        message: form.message.trim(),
+        company_website_confirm: honeypot,
+      },
     });
 
     if (result.ok) {
       setStatus("success");
-      setForm({ name: "", email: "", role: "freelancer", message: "" });
+      setForm(EMPTY);
       return;
     }
-
-    // Graceful degradation — never claim success for mailto
-    const href = buildMailtoHref(form);
-    setMailtoHref(href);
+    setMailtoHref(buildMailtoHref({ ...form, role: roleLabel }));
     setStatus("error");
-    setError(
-      "We could not submit directly. You can still email us directly.",
-    );
+    setAlert(result.message);
   };
+
+  const submitting = status === "submitting";
 
   return (
     <section
       id="contact"
-      className="relative z-[3] border-t border-border py-28 md:py-40"
+      aria-labelledby="contact-title"
+      className="relative z-[3] border-t border-[var(--border)] py-24 md:py-36"
     >
-      <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-        <div className="grid gap-12 md:grid-cols-12 md:gap-20">
-          <div className="md:col-span-5">
-            <div className="mb-6 flex items-center gap-3">
-              <span className="block h-px w-10 bg-[var(--text-dim)]" />
-              <span className="overline">Chapter 05 · Contact</span>
+      <div className="mx-auto max-w-[90rem] px-5 md:px-12">
+        <div className="grid gap-14 lg:grid-cols-12 lg:gap-20">
+          <div className="lg:col-span-5">
+            <div className="flex items-center gap-3">
+              <span className="block h-px w-10 bg-[var(--heading)] opacity-50" />
+              <span className="overline">Contact</span>
             </div>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1 }}
-              className="font-display text-4xl tracking-tighter leading-[1.02] text-[var(--heading)] sm:text-5xl md:text-6xl"
-            >
-              Let&apos;s build something together.
-            </motion.h2>
-            <p className="mt-8 max-w-[40ch] leading-relaxed text-[var(--text-dim)]">
-              Freelancer, student, campus community or brand — drop a message and
-              we&apos;ll get back within 24–48 hours.
-            </p>
+            <SplitText
+              as="h2"
+              id="contact-title"
+              lines={["Talk to", "Genesis."]}
+              className="mt-6 font-display text-[clamp(2.75rem,6vw,5.5rem)] leading-[0.9] text-[var(--heading)]"
+            />
 
-            <div className="mt-12 space-y-8">
+            <Reveal delay={0.1} className="mt-10 space-y-8">
               <div>
-                <div className="overline">Email</div>
-                <a
-                  href={`mailto:${CONTACT_EMAIL}`}
-                  className="link-draw mt-2 block font-display text-2xl text-[var(--heading)]"
-                >
-                  {CONTACT_EMAIL}
-                </a>
-              </div>
-              <div>
-                <div className="overline">Socials</div>
-                <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
-                  {SOCIALS.map((s) => (
+                <h3 className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)]">
+                  Sponsors and partners
+                </h3>
+                <p className="mt-3 max-w-[40ch] text-base leading-relaxed text-[var(--text-dim)]">
+                  Email or call us directly. If you are looking at {DELHI.name} {DELHI.edition}, say so and we will send the details.
+                </p>
+                <div className="mt-4 flex flex-col gap-1">
+                  <Magnetic strength={0.15}>
                     <a
-                      key={s.label}
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="link-draw font-display text-xl text-[var(--heading)]/70 transition-colors hover:text-[var(--heading)]"
+                      href={`mailto:${CONTACT.email}`}
+                      className="link-draw inline-flex min-h-[44px] items-center font-sans text-[clamp(1.35rem,2.4vw,2rem)] tracking-[-0.01em] text-[var(--heading)]"
+                      data-cursor
+                      data-cursor-label="Email"
                     >
-                      {s.label}
+                      {CONTACT.email}
                     </a>
-                  ))}
+                  </Magnetic>
+                  <a
+                    href={CONTACT.phoneHref}
+                    className="inline-flex min-h-[44px] w-fit items-center font-sans text-lg text-[var(--text)] underline-offset-4 hover:underline"
+                  >
+                    {CONTACT.phone}
+                  </a>
                 </div>
               </div>
+
               <div>
-                <div className="overline">We help with</div>
-                <ul className="mt-2 space-y-1 text-[var(--text-dim)]">
-                  <li>— Collabs & sponsorships</li>
-                  <li>— Campus & community partnerships</li>
-                  <li>— Freelancer onboarding</li>
+                <h3 className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)]">
+                  Students and campus communities
+                </h3>
+                <p className="mt-3 max-w-[40ch] text-base leading-relaxed text-[var(--text-dim)]">
+                  Use the form. We reply {CONTACT.replyTime}.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)]">Follow</h3>
+                <ul className="mt-2 flex flex-wrap gap-x-6">
+                  {SOCIALS.map((s) => (
+                    <li key={s.label}>
+                      <a
+                        href={s.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="link-draw inline-flex min-h-[44px] items-center gap-1 text-lg text-[var(--text)]"
+                      >
+                        {s.label}
+                        <span aria-hidden className="text-sm">↗</span>
+                        <span className="sr-only"> (opens in a new tab)</span>
+                      </a>
+                    </li>
+                  ))}
                 </ul>
               </div>
-            </div>
+
+              <p className="text-[15px] text-[var(--text-dim)]">
+                Planning a sponsorship?{" "}
+                <Link to="/partner" className="text-[var(--heading)] underline underline-offset-4">
+                  Use the partner form
+                </Link>{" "}
+                to share budget and timeline.
+              </p>
+            </Reveal>
           </div>
 
-          <div className="md:col-span-7">
+          <div className="lg:col-span-7">
             {status === "success" ? (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                data-testid={LANDING.contactSuccess}
-                className="border border-[var(--border)] bg-[var(--surface)] p-8 text-center md:p-12"
-              >
-                <div className="overline">Message received</div>
-                <p className="mt-4 text-[var(--text-dim)]">
-                  Thanks — the Genesis team will reply within 24–48 hours.
-                </p>
-                <button
-                  type="button"
-                  className="btn-cinema mt-8"
-                  onClick={() => setStatus("idle")}
-                >
-                  Send another
-                </button>
-              </motion.div>
+              <SuccessPanel
+                title="Message received"
+                body={`Thanks for writing. Someone from the Genesis team will reply ${CONTACT.replyTime}.`}
+                onReset={() => setStatus("idle")}
+              />
             ) : (
-              <form
-                data-testid={LANDING.contactForm}
-                onSubmit={onSubmit}
-                className="flex flex-col gap-8 border border-[var(--border)] bg-[var(--surface)] p-8 md:p-12"
-                noValidate
-              >
-                <div className="grid gap-8 sm:grid-cols-2">
-                  <input
-                    data-testid={LANDING.contactName}
-                    required
-                    name="name"
-                    autoComplete="name"
-                    value={form.name}
-                    onChange={(e) =>
-                      setForm({ ...form, name: e.target.value })
-                    }
-                    placeholder="Name"
-                    className="input-line"
-                    disabled={status === "submitting"}
-                  />
-                  <input
-                    data-testid={LANDING.contactEmail}
-                    type="email"
-                    name="email"
-                    autoComplete="email"
-                    required
-                    value={form.email}
-                    onChange={(e) =>
-                      setForm({ ...form, email: e.target.value })
-                    }
-                    placeholder="Email"
-                    className="input-line"
-                    disabled={status === "submitting"}
-                  />
-                </div>
+              <Reveal variant="up">
+                <form
+                  data-testid={LANDING.contactForm}
+                  onSubmit={onSubmit}
+                  noValidate
+                  aria-labelledby="contact-form-title"
+                  className={FORM_CARD}
+                >
+                  <div className="hero-grid pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
+                  <div className="relative">
+                    <Honeypot />
+                    <div className="flex items-baseline justify-between gap-4 border-b border-white/10 pb-5">
+                      <h3 id="contact-form-title" className="font-display text-2xl text-white md:text-3xl">
+                        Send a message
+                      </h3>
+                      <span className="font-mono text-[12px] uppercase tracking-[0.14em] text-white/60">
+                        * required
+                      </span>
+                    </div>
 
-                <div>
-                  <div className="overline mb-3">I am reaching out as</div>
-                  <select
-                    data-testid={LANDING.contactRole}
-                    name="role"
-                    value={form.role}
-                    onChange={(e) =>
-                      setForm({ ...form, role: e.target.value })
-                    }
-                    className="input-line cursor-pointer appearance-none"
-                    disabled={status === "submitting"}
-                  >
-                    <option value="freelancer" className="bg-white text-black">
-                      Freelancer / individual
-                    </option>
-                    <option value="student" className="bg-white text-black">
-                      Student / college community
-                    </option>
-                    <option value="brand" className="bg-white text-black">
-                      Startup / brand
-                    </option>
-                    <option value="other" className="bg-white text-black">
-                      Other
-                    </option>
-                  </select>
-                </div>
+                    <div className="mt-7 grid gap-5 sm:grid-cols-2">
+                      <FloatingField
+                        id="contact-name"
+                        name="name"
+                        label="Name"
+                        autoComplete="name"
+                        required
+                        value={form.name}
+                        onChange={update("name")}
+                        error={errors["contact-name"]}
+                        disabled={submitting}
+                        data-testid={LANDING.contactName}
+                      />
+                      <FloatingField
+                        id="contact-email"
+                        name="email"
+                        type="email"
+                        label="Email"
+                        autoComplete="email"
+                        inputMode="email"
+                        required
+                        value={form.email}
+                        onChange={update("email")}
+                        error={errors["contact-email"]}
+                        disabled={submitting}
+                        data-testid={LANDING.contactEmail}
+                      />
+                    </div>
 
-                <textarea
-                  data-testid={LANDING.contactMessage}
-                  required
-                  name="message"
-                  rows={5}
-                  value={form.message}
-                  onChange={(e) =>
-                    setForm({ ...form, message: e.target.value })
-                  }
-                  placeholder="Tell us a little about you & what you're after…"
-                  className="input-line resize-none"
-                  disabled={status === "submitting"}
-                />
+                    <SelectField
+                      id="contact-role"
+                      name="role"
+                      label="I am reaching out as"
+                      className="mt-5"
+                      value={form.role}
+                      onChange={update("role")}
+                      options={ROLE_OPTIONS}
+                      disabled={submitting}
+                      data-testid={LANDING.contactRole}
+                    />
 
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-                  <p className="max-w-[28ch] text-[11px] font-mono uppercase tracking-[0.18em] text-[var(--text-faint)]">
-                    By submitting, you agree to be contacted by the Genesis team.
-                    See our{" "}
-                    <Link to="/privacy" className="underline">
-                      Privacy Policy
-                    </Link>
-                    .
-                  </p>
-                  <button
-                    data-testid={LANDING.contactSubmit}
-                    type="submit"
-                    className="btn-cinema disabled:opacity-50"
-                    disabled={status === "submitting"}
-                  >
-                    {status === "submitting" ? "Sending…" : "Send message"}
-                    <span aria-hidden>→</span>
-                  </button>
-                </div>
+                    <FloatingField
+                      id="contact-message"
+                      name="message"
+                      as="textarea"
+                      label="Your message"
+                      className="mt-5"
+                      required
+                      value={form.message}
+                      onChange={update("message")}
+                      error={errors["contact-message"]}
+                      disabled={submitting}
+                      data-testid={LANDING.contactMessage}
+                    />
 
-                {error && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-mono text-red-300/80" role="alert">
-                      {error}
-                    </p>
-                    {mailtoHref ? (
-                      <a
-                        href={mailtoHref}
-                        className="inline-flex text-sm text-[var(--heading)] underline-offset-4 hover:underline"
-                      >
-                        Open mail client as fallback →
-                      </a>
-                    ) : null}
+                    <div className="mt-7 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                      <FormNotice />
+                      <SubmitButton submitting={submitting} label="Send message" />
+                    </div>
+
+                    <div className="mt-6">
+                      <FormAlert message={alert}>
+                        {mailtoHref ? (
+                          <a href={mailtoHref} className="mt-2 inline-flex min-h-[44px] items-center text-white underline underline-offset-4">
+                            Email us your message instead →
+                          </a>
+                        ) : null}
+                      </FormAlert>
+                    </div>
                   </div>
-                )}
-              </form>
+                </form>
+              </Reveal>
             )}
           </div>
         </div>

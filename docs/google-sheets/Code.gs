@@ -26,10 +26,11 @@ var FORMS = {
       ["Name", "name"],
       ["Email", "email"],
       ["Phone", "phone"],
-      ["Domain", "role"],
+      ["Area of work", "role"],
       ["Experience", "experience"],
+      ["City", "city"],
       ["Portfolio / Link", "portfolio"],
-      ["Why Genesis", "message"]
+      ["What they want to work on", "message"]
     ]
   },
   partner: {
@@ -40,7 +41,11 @@ var FORMS = {
       ["Email", "email"],
       ["Phone", "phone"],
       ["Company / College", "organization"],
+      ["Event of interest", "eventOfInterest"],
+      ["Goals", "goals"],
       ["Partnership type", "partnershipType"],
+      ["Budget band", "budgetBand", "budget"],
+      ["Timeline", "timeline"],
       ["Website", "website"],
       ["Details", "proposal"]
     ]
@@ -55,6 +60,18 @@ var FORMS = {
       ["Collaboration type", "partnershipType"],
       ["Website", "website"],
       ["Details", "proposal"]
+    ]
+  },
+  delhi_interest: {
+    tab: "Delhi Interest",
+    columns: [
+      ["Name", "name"],
+      ["Email", "email"],
+      ["Phone", "phone"],
+      ["College / Organisation", "organization"],
+      ["City", "city"],
+      ["Tracks", "tracks"],
+      ["Team status", "teamStatus", "team"]
     ]
   }
 };
@@ -103,6 +120,10 @@ function setup() {
 function pick_(data, keys) {
   for (var i = 0; i < keys.length; i++) {
     var value = data[keys[i]];
+    // Multi-select fields (goals, tracks) arrive as arrays.
+    if (Object.prototype.toString.call(value) === "[object Array]") {
+      value = value.join(", ");
+    }
     if (value !== undefined && value !== null && String(value).trim() !== "") {
       var text = String(value).trim();
       // Stop submitted text from being evaluated as a sheet formula.

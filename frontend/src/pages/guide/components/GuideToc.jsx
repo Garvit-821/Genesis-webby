@@ -1,62 +1,66 @@
 import React, { useEffect, useState } from "react";
 
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  // Go through Lenis when it is running; a plain scrollTo is ignored under it.
+  if (window.__lenis) {
+    window.__lenis.scrollTo(el, { offset: -120, duration: 1.1 });
+  } else {
+    const top = el.getBoundingClientRect().top + window.scrollY - 120;
+    window.scrollTo({ top, behavior: "smooth" });
+  }
+}
+
 export default function GuideToc({ sections = [] }) {
   const [activeId, setActiveId] = useState(sections[0]?.id || "");
 
   useEffect(() => {
-    if (!sections.length) return;
-
-    const handleScroll = () => {
-      const scrollPos = window.scrollY + 120;
-      for (let i = sections.length - 1; i >= 0; i--) {
+    if (!sections.length) return undefined;
+    const onScroll = () => {
+      const pos = window.scrollY + 160;
+      for (let i = sections.length - 1; i >= 0; i -= 1) {
         const el = document.getElementById(sections[i].id);
-        if (el && el.offsetTop <= scrollPos) {
+        if (el && el.getBoundingClientRect().top + window.scrollY <= pos) {
           setActiveId(sections[i].id);
-          break;
+          return;
         }
       }
+      setActiveId(sections[0].id);
     };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
   }, [sections]);
 
   if (!sections.length) return null;
 
-  const scrollToSection = (id) => {
-    const el = document.getElementById(id);
-    if (el) {
-      const top = el.getBoundingClientRect().top + window.pageYOffset - 100;
-      window.scrollTo({ top, behavior: "smooth" });
-    }
-  };
-
   return (
-    <div className="w-64 shrink-0 hidden lg:block sticky top-24 self-start space-y-3 px-4 py-2 border-l border-white/10 text-xs">
-      <div className="font-display uppercase text-[11px] tracking-wider text-white/50">
-        On this page
-      </div>
-      <ul className="space-y-2">
+    <nav aria-label="On this page" className="sticky top-32 hidden w-64 shrink-0 self-start space-y-3 border-l border-white/10 px-4 py-2 lg:block">
+      <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-white/60">On this page</p>
+      <ul className="space-y-1">
         {sections.map((sec) => {
           const isActive = activeId === sec.id;
           return (
             <li key={sec.id}>
-              <button
-                type="button"
-                onClick={() => scrollToSection(sec.id)}
-                className={`text-left transition-colors duration-150 leading-relaxed block w-full truncate ${
-                  isActive
-                    ? "text-[#e2efba] font-medium pl-1 border-l-2 border-[#e2efba]"
-                    : "text-white/50 hover:text-white"
+              <a
+                href={`#${sec.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  scrollToSection(sec.id);
+                }}
+                aria-current={isActive ? "location" : undefined}
+                className={`block min-h-[32px] py-1 text-[14px] leading-snug transition-colors ${
+                  isActive ? "border-l-2 border-[var(--heading)] pl-2 text-[var(--heading)]" : "text-white/65 hover:text-white"
                 }`}
               >
                 {sec.title}
-              </button>
+              </a>
             </li>
           );
         })}
       </ul>
-    </div>
+    </nav>
   );
 }

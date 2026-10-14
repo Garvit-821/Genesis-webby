@@ -5,6 +5,12 @@
 
 export const CONSENT_STORAGE_KEY = "genesis:consent";
 export const CONSENT_EVENT = "genesis:consent-change";
+export const CONSENT_OPEN_EVENT = "genesis:consent-open";
+
+/** Reopens the banner so a visitor can change their choice (audit G06). */
+export function openConsentSettings() {
+  window.dispatchEvent(new CustomEvent(CONSENT_OPEN_EVENT));
+}
 
 export function getConsent() {
   if (typeof window === "undefined") return null;

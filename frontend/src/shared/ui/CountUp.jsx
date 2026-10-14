@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useInView, useMotionValue, animate } from "framer-motion";
 
-// Animated number counter that scrubs to target when scrolled into view
+// Animated number counter that scrubs to target when scrolled into view.
 export default function CountUp({ value = 100, suffix = "", duration = 2, className = "" }) {
     const ref = useRef(null);
     const inView = useInView(ref, { once: true, margin: "-50px" });
@@ -21,10 +21,17 @@ export default function CountUp({ value = 100, suffix = "", duration = 2, classN
         return () => controls.stop();
     }, [inView, value, duration, mv]);
 
+    // Assistive tech reads the final figure; the ticking digits are visual only.
     return (
         <span ref={ref} className={className}>
-            {display}
-            {suffix}
+            <span className="sr-only">
+                {value.toLocaleString("en-IN")}
+                {suffix}
+            </span>
+            <span aria-hidden="true">
+                {display}
+                {suffix}
+            </span>
         </span>
     );
 }

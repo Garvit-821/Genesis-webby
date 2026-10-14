@@ -1,235 +1,310 @@
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Footer } from '@widgets/layout';
-import HackersOccupiedPuneSchedule from '@features/events-showcase/HackersOccupiedPuneSchedule';
-import { EVENT_DETAILS } from '@shared/data/puneEventScheduleData';
+import React, { useLayoutEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { PageShell } from "@widgets/layout";
+import HackersOccupiedPuneSchedule from "@features/events-showcase/HackersOccupiedPuneSchedule";
+import { EVENT_DETAILS, PUNE_FACTS, PUNE_SCHEDULE_DATA } from "@shared/data/puneEventScheduleData";
+import { PUNE_STORY, PUNE_GROUP_PHOTO } from "@shared/data/mediaAssets";
+import { BRAND, DELHI, PUNE, SITE_URL } from "@shared/config/site";
+import { EASE_OUT, Magnetic, Reveal, ScrambleText, SplitText, useMediaQuery } from "@shared/motion";
+import "./events.css";
 
-export default function HackersOccupiedPunePage() {
-  useEffect(() => {
-    try {
-      window.scrollTo(0, 0);
-    } catch (e) {
-      // Ignore scroll error if any
-    }
-  }, []);
+const find = (activity) => PUNE_SCHEDULE_DATA.find((i) => i.activity === activity);
+const startsOf = (pred) => PUNE_SCHEDULE_DATA.filter(pred).map((i) => i.startTime);
+const listTimes = (times) =>
+  times.length > 1 ? `${times.slice(0, -1).join(", ")} and ${times[times.length - 1]}` : times[0];
 
-  const eventMeta = EVENT_DETAILS || {
-    lumaUrl: "https://hackculture.io/hackathons/hackers-occupied-pune",
-    venueShort: "VIT, Pune",
-    prizePool: "₹1,50,000+",
-  };
+/** Highlights written from the schedule rows, so the page cannot drift from the data (audit C11). */
+function buildHighlights() {
+  const mentoring = PUNE_SCHEDULE_DATA.filter((i) => i.type === "Mentoring");
+  const logitech = startsOf((i) => /^Logitech Activity \d/.test(i.activity));
+  const creatorStart = find("Creator Challenge Release");
+  const creatorEnd = find("Creator Track Submission Deadline");
+  const salesforce = find("Salesforce Speaker Session");
+  const problem = find("Problem Statement Release");
+  return [
+    {
+      title: "Two tracks",
+      body: `${EVENT_DETAILS.tracks.join(" and ")}. Problem statements went out at ${problem?.startTime} on 22 Aug.`,
+    },
+    {
+      title: `${PUNE_FACTS.mentoringRounds} mentoring rounds`,
+      body: `At ${listTimes(mentoring.map((m) => `${m.startTime} (${m.date.slice(0, 6)})`))}. Two mentors visited every team, about 5 minutes each.`,
+    },
+    {
+      title: `${PUNE_FACTS.logitechActivities} Logitech activities`,
+      body: `Overnight at ${listTimes(logitech)}. One person per team took part while the rest kept building.`,
+    },
+    {
+      title: "Creator challenges",
+      body: `10 to 15 challenges released at ${creatorStart?.startTime} on 22 Aug. Submissions closed at ${creatorEnd?.startTime} on 23 Aug.`,
+    },
+    {
+      title: "Salesforce session",
+      body: `Optional session with Salesforce engineers on 23 Aug, ${salesforce?.startTime} to ${salesforce?.endTime}. E-certificates for those who attended.`,
+    },
+    {
+      title: "Food at the desks",
+      body: "Cornitos snacks and Red Bull at 17:00, dinner at 20:00, midnight snacks, then tea and breakfast at 08:00, all served at team tables.",
+    },
+  ];
+}
+
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Event",
+  name: PUNE.name,
+  description: `${PUNE.name} took place on ${PUNE.when} at ${PUNE.where}.`,
+  startDate: EVENT_DETAILS.startDate,
+  endDate: EVENT_DETAILS.endDate,
+  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+  eventStatus: "https://schema.org/EventScheduled",
+  location: {
+    "@type": "Place",
+    name: "Vishwakarma Institute of Technology (VIT)",
+    address: { "@type": "PostalAddress", addressLocality: "Pune", addressRegion: "Maharashtra", addressCountry: "IN" },
+  },
+  image: [`${SITE_URL}${PUNE_GROUP_PHOTO?.src}`],
+  organizer: { "@type": "Organization", name: BRAND.name, url: SITE_URL },
+};
+
+function ConcludedStamp() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 1.6, rotate: -18 }}
+      animate={{ opacity: 1, scale: 1, rotate: -8 }}
+      transition={{ duration: 0.7, delay: 0.9, ease: [0.34, 1.56, 0.64, 1] }}
+      className="pixel-corners inline-flex flex-col items-center border-2 border-[var(--heading)] px-5 py-3 text-[var(--heading)]"
+    >
+      <span className="font-mono text-[12px] uppercase tracking-[0.2em]">Concluded</span>
+      <span className="whitespace-nowrap font-display text-2xl leading-none">22–23.08.26</span>
+    </motion.div>
+  );
+}
+
+/** Photo strip that slides sideways as the page scrolls (sticky, no scroll hijack). */
+function RecapStrip() {
+  const wide = useMediaQuery("(min-width: 1024px)");
+  const reduce = useReducedMotion();
+  const scrub = wide && !reduce;
+  const sectionRef = useRef(null);
+  const trackRef = useRef(null);
+  const [distance, setDistance] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!scrub) return undefined;
+    const measure = () => {
+      const track = trackRef.current;
+      if (track) setDistance(Math.max(0, track.scrollWidth - window.innerWidth + 48));
+    };
+    measure();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    ro?.observe(trackRef.current);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [scrub]);
+
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"], layoutEffect: false });
+  const x = useTransform(scrollYProgress, [0, 1], [0, -distance]);
+  const wordX = useTransform(scrollYProgress, [0, 1], ["10%", "-45%"]);
+
+  const frames = PUNE_STORY.map((p, i) => (
+    <figure key={p.src} className="w-[80vw] shrink-0 snap-start sm:w-[56vw] lg:w-[min(46vw,720px)]">
+      <div className="relative aspect-[3/2] overflow-hidden bg-[#121214]">
+        <img
+          src={p.src}
+          alt={p.alt}
+          width={p.width}
+          height={p.height}
+          loading={i < 2 ? "eager" : "lazy"}
+          decoding="async"
+          className="h-full w-full object-cover"
+        />
+        <span className="absolute left-3 top-3 bg-black/70 px-2 py-1 font-mono text-[12px] tracking-[0.14em] text-white">
+          {String(i + 1).padStart(2, "0")} / {String(PUNE_STORY.length).padStart(2, "0")}
+        </span>
+      </div>
+      <figcaption className="mt-3 flex items-baseline justify-between gap-4">
+        <span className="font-display text-xl text-[var(--heading)]">{p.caption}</span>
+        <span className="font-mono text-[12px] uppercase tracking-[0.14em] text-white/60">{p.meta}</span>
+      </figcaption>
+    </figure>
+  ));
+
+  if (!scrub) {
+    return (
+      <section aria-label="Photos from Hackers Occupied Pune" className="py-16">
+        <div className="flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-6 md:px-12">{frames}</div>
+      </section>
+    );
+  }
 
   return (
-    <div className="relative min-h-screen bg-[#0c0c0f] text-white selection:bg-[var(--brand)] selection:text-black font-sans">
-      {/* Top Header Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-black/60 backdrop-blur-xl border-b border-white/10">
-        <div className="flex items-center gap-4">
-          <Link
-            to="/events"
-            className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-white/70 hover:text-white transition-colors"
-          >
-            ← Back to Events Archive
-          </Link>
-          <span className="text-white/20">|</span>
-          <span className="text-xs font-mono text-[var(--brand)] font-bold">
-            Flagship Hackathon 2026
-          </span>
-        </div>
-        <a
-          href={eventMeta.lumaUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--brand)] text-black text-xs font-mono font-bold uppercase tracking-wider hover:opacity-90 transition-all shadow-[0_0_20px_rgba(196,181,253,0.3)]"
+    <section ref={sectionRef} aria-label="Photos from Hackers Occupied Pune" className="relative" style={{ height: `calc(100vh + ${distance}px)` }}>
+      <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
+        <motion.span
+          aria-hidden
+          style={{ x: wordX }}
+          className="text-outline pointer-events-none absolute bottom-[4vh] left-0 whitespace-nowrap font-display text-[32vw] leading-none opacity-40"
         >
-          Register on HackCulture ↗
-        </a>
-      </nav>
+          Pune Pune
+        </motion.span>
+        <motion.div ref={trackRef} style={{ x }} className="relative flex w-max gap-10 pl-12 pr-24 will-change-transform">
+          {frames}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-16 px-6 md:px-12 max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-12 gap-8 items-center">
-          <div className="md:col-span-7 space-y-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="space-y-4"
-            >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--brand)]/30 bg-[var(--brand)]/10 text-[11px] font-mono uppercase tracking-widest text-[var(--brand)] font-bold">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Official Event Schedule & Live Tracker
-              </div>
-              <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl uppercase tracking-tight leading-[0.95] text-white">
-                Hackers Occupied <span className="text-[var(--brand)]">Pune</span>
-              </h1>
-              <p className="font-mono text-sm text-white/60">
-                sudo takeover --city pune · 22–23 August 2026
-              </p>
-              <p className="text-sm md:text-base text-white/80 leading-relaxed max-w-2xl">
-                Genesis flagship 24-hour creator-first hackathon hosted at VIT Pune, Maharashtra. Featuring Agentic AI & Web3 tracks, 3 intensive mentoring rounds, 3 Logitech sponsor challenges, and the signature Creator Challenge.
-              </p>
-            </motion.div>
+export default function HackersOccupiedPunePage() {
+  const highlights = buildHighlights();
 
-            {/* Quick Meta Cards */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2"
-            >
-              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 space-y-1">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-white/40">Venue</span>
-                <p className="font-mono text-xs text-white font-bold">{eventMeta.venueShort}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 space-y-1">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-white/40">Dates</span>
-                <p className="font-mono text-xs text-white font-bold">22–23 August 2026</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3.5 space-y-1">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-white/40">Prize Pool</span>
-                <p className="font-mono text-xs text-[var(--brand)] font-bold">{eventMeta.prizePool}</p>
-              </div>
-            </motion.div>
-
-            {/* CTA row */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="flex flex-wrap items-center gap-4 pt-2"
-            >
-              <a
-                href={eventMeta.lumaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-cinema flex items-center gap-2 group"
-              >
-                <span>Register Team on HackCulture</span>
-                <span aria-hidden className="transition-transform group-hover:translate-x-1">↗</span>
-              </a>
-              <a
-                href="#schedule-section"
-                className="px-5 py-3 rounded-xl border border-white/20 text-xs font-mono uppercase tracking-wider hover:bg-white/10 transition-all text-white/80"
-              >
-                Jump to Live Schedule ↓
-              </a>
-            </motion.div>
-          </div>
-
-          {/* Hero Poster */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="md:col-span-5 relative"
-          >
-            <div className="relative aspect-square overflow-hidden rounded-3xl border border-white/15 shadow-[0_30px_90px_rgba(0,0,0,0.8)]">
-              <img
-                src="/assets/BrandImg/1.png"
-                alt="Hackers Occupied Pune Poster"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-              <div className="absolute bottom-5 left-5 right-5 text-center">
-                <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 bg-black/60 px-3 py-1 rounded-full border border-emerald-500/30">
-                  Shortlisting In Progress · Free Entry
-                </span>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Main Schedule & Timer Section */}
-      <section id="schedule-section" className="py-12 px-6 md:px-12 max-w-7xl mx-auto border-t border-white/10">
-        <div className="space-y-4 mb-8">
+  return (
+    <PageShell seo={{ jsonLd: JSON_LD }}>
+      {/* Hero */}
+      <header className="relative overflow-hidden px-5 pb-16 pt-40 md:px-12 md:pt-52">
+        <div aria-hidden className="hero-grid pointer-events-none absolute inset-0 opacity-[0.06]" />
+        <div className="relative mx-auto max-w-[90rem]">
           <div className="flex items-center gap-3">
-            <span className="w-8 h-px bg-[var(--brand)]" />
-            <span className="font-mono text-xs uppercase tracking-widest text-[var(--brand)] font-bold">
-              Official Master Agenda
-            </span>
+            <span className="block h-2 w-2 bg-[var(--heading)]" aria-hidden />
+            <ScrambleText text="Hackers Occupied · Recap" className="overline" />
           </div>
-          <h2 className="font-display text-3xl sm:text-5xl uppercase tracking-tight text-white">
-            Detailed Event Schedule & Timeline
-          </h2>
-          <p className="text-sm text-white/60 max-w-2xl">
-            Browse all 45 scheduled activities for Hackers Occupied Pune. Use the filters to view specific days, hacking periods, mentoring rounds, Logitech sponsor activities, and meal breaks.
-          </p>
+          <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+            <SplitText
+              as="h1"
+              lines={["Hackers", "Occupied Pune"]}
+              trigger="mount"
+              delay={0.15}
+              className="font-display text-[clamp(3rem,10vw,9.5rem)] leading-[0.86] text-[var(--heading)]"
+            />
+            <ConcludedStamp />
+          </div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.55, ease: EASE_OUT }}
+            className="mt-10 max-w-[56ch] text-lg leading-relaxed text-white/80 md:text-xl"
+          >
+            {PUNE.name} took place on {PUNE.when} at {PUNE.where}. The next Hackers Occupied is in Delhi.
+          </motion.p>
+
+          <dl className="mt-10 grid grid-cols-2 border-l border-t border-white/10 lg:grid-cols-4">
+            {[
+              { label: "When", value: PUNE.when },
+              { label: "Where", value: EVENT_DETAILS.venueShort },
+              { label: "Format", value: `${EVENT_DETAILS.format}, ${PUNE_FACTS.hackingHours} hours of hacking` },
+              { label: "Prize pool", value: EVENT_DETAILS.prizePool },
+            ].map((f, i) => (
+              <Reveal key={f.label} delay={0.2 + i * 0.06} className="border-b border-r border-white/10 p-5">
+                <dt className="font-mono text-[12px] uppercase tracking-[0.14em] text-white/65">{f.label}</dt>
+                <dd className="mt-2 text-lg text-white">{f.value}</dd>
+              </Reveal>
+            ))}
+          </dl>
+
+          <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+            <Magnetic strength={0.25}>
+              <Link to={PUNE.certificatePath} className="btn-cinema w-full justify-center sm:w-auto" data-cursor data-cursor-label="Certificate">
+                Download your certificate <span aria-hidden>→</span>
+              </Link>
+            </Magnetic>
+            <Link to="/gallery" className="btn-ghost w-full justify-center sm:w-auto">
+              See all photos
+            </Link>
+            <a href="#schedule" className="inline-flex min-h-[44px] items-center px-2 text-[15px] text-white/80 underline-offset-4 hover:text-white hover:underline">
+              Jump to the schedule ↓
+            </a>
+          </div>
         </div>
+      </header>
 
-        {/* Schedule Component */}
-        <HackersOccupiedPuneSchedule showHeader={true} />
-      </section>
+      <RecapStrip />
 
-      {/* Tracks & Special Activities Grid */}
-      <section className="py-16 px-6 md:px-12 max-w-7xl mx-auto border-t border-white/10 space-y-10">
-        <div className="text-center space-y-2">
-          <span className="font-mono text-xs uppercase tracking-widest text-[var(--brand)] font-bold">
-            Hackathon Highlights
-          </span>
-          <h3 className="font-display text-3xl sm:text-4xl uppercase tracking-tight text-white">
-            What to Expect During the 24 Hours
-          </h3>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            {
-              title: "Agentic AI & Web3 Tracks",
-              desc: "Build autonomous AI agents, multi-agent workflows, cross-chain protocols, or decentralized infrastructure. Compete for flagship track prizes.",
-              badge: "Problem Statements at 15:00 (Aug 22)",
-              color: "#34d399",
-            },
-            {
-              title: "3 Mentoring Rounds",
-              desc: "Round 1 (18:00 Aug 22), Round 2 (23:00 Aug 22), and Final Round (08:30 Aug 23). Top industry mentors evaluate progress directly at team tables.",
-              badge: "5 Mins Per Team",
-              color: "#818cf8",
-            },
-            {
-              title: "Logitech Activities (1, 2, 3)",
-              desc: "Three high-octane sponsor mini-challenges held overnight (01:15, 02:45, 04:15 AM). 1 member per team competes for Logitech tech gear prizes.",
-              badge: "Gear & Prize Pool",
-              color: "#f472b6",
-            },
-            {
-              title: "Creator Challenge (30 Marks)",
-              desc: "10-15 creator challenges released right at hacking start (15:00 Aug 22) with a strict submission deadline at 11:00 AM on Aug 23.",
-              badge: "Deadline 11:00 AM",
-              color: "#a855f7",
-            },
-            {
-              title: "SalesForce Speaker Session",
-              desc: "Exclusive session on Aug 23 from 13:45 to 15:00 featuring SalesForce engineers and leaders (Optional session for interested participants; e-certificates provided).",
-              badge: "E-Certificates Provided",
-              color: "#2dd4bf",
-            },
-            {
-              title: "Meals & Fuel Station",
-              desc: "Cornitos Snacks + Red Bull (17:00), Dinner (20:00), Midnight Snacks (00:00), and Morning Tea + Breakfast (08:00) delivered straight to team tables.",
-              badge: "Free Food & Drinks",
-              color: "#f97316",
-            },
-          ].map((card) => (
-            <div
-              key={card.title}
-              className="rounded-2xl border border-white/10 bg-[#121218] p-6 space-y-4 hover:border-white/25 transition-all"
-            >
-              <span
-                className="px-2.5 py-0.5 text-[9px] font-mono font-bold uppercase rounded-full border"
-                style={{ color: card.color, borderColor: card.color + '40', backgroundColor: card.color + '15' }}
-              >
-                {card.badge}
-              </span>
-              <h4 className="font-sans font-bold text-xl text-white">{card.title}</h4>
-              <p className="text-xs text-white/70 leading-relaxed font-sans">{card.desc}</p>
-            </div>
+      {/* Highlights */}
+      <section aria-labelledby="pune-highlights" className="mx-auto max-w-[90rem] px-5 py-20 md:px-12 md:py-28">
+        <p className="overline">What happened</p>
+        <SplitText
+          as="h2"
+          id="pune-highlights"
+          text="Two days at VIT Pune"
+          className="mt-4 font-display text-[clamp(2.2rem,5vw,4.5rem)] leading-[0.92] text-[var(--heading)]"
+        />
+        <ol className="mt-12 grid gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
+          {highlights.map((h, i) => (
+            <Reveal as="li" key={h.title} delay={(i % 3) * 0.08} className="group relative bg-[var(--bg)] p-6 md:p-8">
+              <span className="font-mono text-[12px] tracking-[0.14em] text-white/55">{String(i + 1).padStart(2, "0")}</span>
+              <h3 className="mt-6 font-display text-2xl leading-none text-white transition-colors group-hover:text-[var(--heading)]">
+                {h.title}
+              </h3>
+              <p className="mt-4 text-[15px] leading-relaxed text-white/75">{h.body}</p>
+              <span aria-hidden className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-[var(--heading)] transition-transform duration-700 group-hover:scale-x-100" />
+            </Reveal>
           ))}
+        </ol>
+      </section>
+
+      {/* Schedule */}
+      <section id="schedule" aria-labelledby="pune-schedule" className="scroll-mt-28 border-t border-white/10">
+        <div className="mx-auto max-w-[90rem] px-5 py-20 md:px-12 md:py-28">
+          <p className="overline">Schedule</p>
+          <SplitText
+            as="h2"
+            id="pune-schedule"
+            lines={["How the", `${PUNE_FACTS.eventHours} hours ran`]}
+            className="mt-4 font-display text-[clamp(2.2rem,5vw,4.5rem)] leading-[0.92] text-[var(--heading)]"
+          />
+          <p className="mt-6 max-w-[60ch] text-base leading-relaxed text-white/75 md:text-lg">
+            From arrivals at 11:00 on 22 August to the close at 15:00 on 23 August. All {PUNE_FACTS.activityCount} activities, as scheduled.
+          </p>
+          <div className="mt-12">
+            <HackersOccupiedPuneSchedule />
+          </div>
         </div>
       </section>
 
-      <Footer />
-    </div>
+      {/* Certificates */}
+      <section aria-labelledby="pune-certs" className="border-t border-white/10">
+        <div className="mx-auto flex max-w-[90rem] flex-col gap-6 px-5 py-16 md:flex-row md:items-center md:justify-between md:px-12">
+          <div>
+            <h2 id="pune-certs" className="font-display text-[clamp(1.8rem,3.4vw,3rem)] leading-none text-white">
+              Took part? Get your certificate.
+            </h2>
+            <p className="mt-3 text-base text-white/75">Use the email and phone number you registered with.</p>
+          </div>
+          <Link to={PUNE.certificatePath} className="btn-ghost">
+            Download certificate <span aria-hidden>→</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* Next up */}
+      <section aria-label="Next event" className="px-5 pb-24 md:px-12 md:pb-32">
+        <Link
+          to={DELHI.path}
+          className="group pixel-corners relative mx-auto block max-w-[90rem] overflow-hidden bg-[var(--heading)] p-8 text-[#181818] md:p-14"
+          data-cursor
+          data-cursor-label="Delhi"
+        >
+          <span className="font-mono text-[12px] uppercase tracking-[0.18em]">Next up</span>
+          <span className="mt-4 block font-display text-[clamp(2.6rem,8vw,7.5rem)] leading-[0.86]">
+            {DELHI.name} {DELHI.edition}
+          </span>
+          <span className="mt-6 flex flex-wrap items-center justify-between gap-4 text-lg">
+            <span>
+              {DELHI.where} · {DELHI.when} · {DELHI.teams} teams
+            </span>
+            <span className="inline-flex items-center gap-2 font-mono text-[13px] uppercase tracking-[0.14em]">
+              See the event
+              <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-2">→</span>
+            </span>
+          </span>
+        </Link>
+      </section>
+    </PageShell>
   );
 }

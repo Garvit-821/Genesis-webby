@@ -1,272 +1,198 @@
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { CONTACT } from "@shared/config/site";
 import { submitFormToSheets } from "@shared/services/formSubmissionService";
+import { buildMailtoHref, isValidEmail } from "@/features/contact/submitContactLead";
+import {
+  FORM_CARD,
+  FloatingField,
+  FormAlert,
+  FormNotice,
+  Honeypot,
+  SelectField,
+  SubmitButton,
+  SuccessPanel,
+  focusFirstInvalid,
+  readHoneypot,
+} from "./FormKit";
 
-export default function WorkWithUsForm({ isOpen, onClose, preselectedRole = "" }) {
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    domain: preselectedRole || "engineering",
-    experience: "1-3 years",
-    portfolio: "",
-    whyGenesis: "",
-  });
+export const CREW_AREAS = [
+  { value: "events", label: "Event operations" },
+  { value: "partnerships", label: "Partnerships" },
+  { value: "design", label: "Design" },
+  { value: "engineering", label: "Engineering" },
+  { value: "community", label: "Community and campus" },
+  { value: "other", label: "Something else" },
+];
 
-  const [status, setStatus] = useState("idle"); // idle | submitting | success | error
-  const [errorMsg, setErrorMsg] = useState("");
+const EXPERIENCE = [
+  { value: "student", label: "Student" },
+  { value: "0-2", label: "0–2 years working" },
+  { value: "3-5", label: "3–5 years working" },
+  { value: "5+", label: "5+ years working" },
+];
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+const ORDER = ["crew-name", "crew-email", "crew-message"];
+
+const empty = (area) => ({
+  name: "",
+  email: "",
+  phone: "",
+  area: area || "events",
+  experience: "student",
+  city: "",
+  portfolio: "",
+  message: "",
+});
+
+/**
+ * "Join the crew" application. Inline on /careers. `area` preselects the
+ * area of work when someone picks it from a card.
+ */
+export default function WorkWithUsForm({ area }) {
+  const [form, setForm] = useState(() => empty(area));
+  const [errors, setErrors] = useState({});
+  const [status, setStatus] = useState("idle");
+  const [alert, setAlert] = useState("");
+  const [mailtoHref, setMailtoHref] = useState("");
+
+  useEffect(() => {
+    if (area) setForm((f) => ({ ...f, area }));
+  }, [area]);
+
+  const update = (key, id) => (e) => {
+    const value = e.target.value;
+    setForm((f) => ({ ...f, [key]: value }));
+    if (id && errors[id]) setErrors((prev) => ({ ...prev, [id]: undefined }));
   };
 
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg("");
-
-    if (!form.fullName.trim() || !form.email.trim() || !form.whyGenesis.trim()) {
-      setErrorMsg("Please fill in your name, email, and why you'd like to join.");
+    const honeypot = readHoneypot(e);
+    setAlert("");
+    const found = {};
+    if (!form.name.trim()) found["crew-name"] = "Tell us your name.";
+    if (!form.email.trim()) found["crew-email"] = "Add an email so we can reply.";
+    else if (!isValidEmail(form.email)) found["crew-email"] = "That email address does not look right.";
+    if (!form.message.trim()) found["crew-message"] = "Tell us what you would like to work on.";
+    setErrors(found);
+    if (Object.keys(found).length) {
+      setAlert("Please fix the highlighted fields.");
+      focusFirstInvalid(found, ORDER);
       return;
     }
 
     setStatus("submitting");
-
+    const areaLabel = CREW_AREAS.find((a) => a.value === form.area)?.label || form.area;
+    const experienceLabel = EXPERIENCE.find((x) => x.value === form.experience)?.label || form.experience;
     const result = await submitFormToSheets({
       formType: "work_with_us",
       data: {
-        name: form.fullName,
-        email: form.email,
-        phone: form.phone,
-        role: form.domain,
-        experience: form.experience,
-        portfolio: form.portfolio,
-        message: form.whyGenesis,
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        role: areaLabel,
+        experience: experienceLabel,
+        portfolio: form.portfolio.trim(),
+        message: form.message.trim(),
+        city: form.city.trim(),
+        company_website_confirm: honeypot,
       },
     });
 
     if (result.ok) {
       setStatus("success");
-      setForm({
-        fullName: "",
-        email: "",
-        phone: "",
-        domain: "engineering",
-        experience: "1-3 years",
-        portfolio: "",
-        whyGenesis: "",
-      });
-    } else {
-      setStatus("error");
-      setErrorMsg(result.message || "Failed to submit. Please try again.");
+      setForm(empty(form.area));
+      return;
     }
+    setStatus("error");
+    setAlert(result.message);
+    setMailtoHref(
+      buildMailtoHref({
+        name: form.name,
+        email: form.email,
+        role: `Crew application, ${areaLabel}`,
+        message: form.message,
+        subject: `Crew application: ${areaLabel}`,
+      }),
+    );
   };
 
-  if (!isOpen) return null;
+  const submitting = status === "submitting";
+
+  if (status === "success") {
+    return (
+      <SuccessPanel
+        title="Application received"
+        body={`Thanks for putting your hand up. We reply to every application ${CONTACT.replyTime}, and if there is a fit for an upcoming event we will set up a call.`}
+        onReset={() => setStatus("idle")}
+        resetLabel="Send another"
+      />
+    );
+  }
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/80 backdrop-blur-xl">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-2xl bg-[#0e0e12] border border-white/15 rounded-3xl p-6 sm:p-10 shadow-[0_25px_60px_rgba(0,0,0,0.8)] my-8 text-white"
-        >
-          {/* Close button */}
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute top-6 right-6 p-2 text-white/50 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors"
-            aria-label="Close modal"
-          >
-            ✕
-          </button>
+    <form onSubmit={onSubmit} noValidate aria-labelledby="crew-form-title" className={FORM_CARD}>
+      <div className="hero-grid pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
+      <div className="relative">
+        <Honeypot />
+        <div className="flex items-baseline justify-between gap-4 border-b border-white/10 pb-5">
+          <h3 id="crew-form-title" className="font-display text-2xl text-white md:text-3xl">
+            Apply to the crew
+          </h3>
+          <span className="font-mono text-[12px] uppercase tracking-[0.14em] text-white/60">* required</span>
+        </div>
 
-          <div className="mb-6">
-            <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-[var(--brand)]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand)] animate-pulse" />
-              Join The Core Team
-            </span>
-            <h2 className="font-display text-2xl sm:text-4xl text-white uppercase tracking-tight mt-2">
-              Work With Us
-            </h2>
-            <p className="font-sans text-xs sm:text-sm text-white/60 mt-1">
-              Submissions log directly to our team directory on Google Sheets.
-            </p>
-          </div>
+        <div className="mt-7 grid gap-5 sm:grid-cols-2">
+          <FloatingField id="crew-name" name="name" label="Full name" autoComplete="name" required value={form.name} onChange={update("name", "crew-name")} error={errors["crew-name"]} disabled={submitting} />
+          <FloatingField id="crew-email" name="email" type="email" inputMode="email" label="Email" autoComplete="email" required value={form.email} onChange={update("email", "crew-email")} error={errors["crew-email"]} disabled={submitting} />
+          <SelectField id="crew-area" name="area" label="Area of work" value={form.area} onChange={update("area")} options={CREW_AREAS} disabled={submitting} />
+          <SelectField id="crew-experience" name="experience" label="Experience" value={form.experience} onChange={update("experience")} options={EXPERIENCE} disabled={submitting} />
+          <FloatingField id="crew-phone" name="phone" type="tel" inputMode="tel" label="Phone or WhatsApp" autoComplete="tel" value={form.phone} onChange={update("phone")} disabled={submitting} />
+          <FloatingField id="crew-city" name="city" label="City" autoComplete="address-level2" value={form.city} onChange={update("city")} disabled={submitting} />
+        </div>
 
-          {status === "success" ? (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="py-12 text-center space-y-4"
-            >
-              <div className="w-16 h-16 rounded-full bg-[var(--brand)]/20 text-[var(--brand)] flex items-center justify-center text-3xl mx-auto border border-[var(--brand)]/40">
-                ✓
-              </div>
-              <h3 className="font-display text-2xl uppercase">Application Received!</h3>
-              <p className="text-sm text-white/70 max-w-md mx-auto">
-                Thank you for applying. Your application has been logged to our Google Sheet. Our team will review your profile and get back to you shortly.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setStatus("idle");
-                  onClose();
-                }}
-                className="mt-6 px-6 py-3 rounded-xl font-mono text-xs uppercase tracking-wider font-bold bg-[var(--brand)] text-black hover:bg-white transition-colors"
-              >
-                Close Window
-              </button>
-            </motion.div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-white/60 mb-1.5">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    required
-                    value={form.fullName}
-                    onChange={handleChange}
-                    placeholder="Satoshi Nakamoto"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[var(--brand)] transition-colors"
-                    disabled={status === "submitting"}
-                  />
-                </div>
+        <FloatingField
+          id="crew-portfolio"
+          name="portfolio"
+          type="url"
+          inputMode="url"
+          label="Portfolio, GitHub or LinkedIn"
+          autoComplete="url"
+          className="mt-5"
+          value={form.portfolio}
+          onChange={update("portfolio")}
+          disabled={submitting}
+        />
 
-                <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-white/60 mb-1.5">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    value={form.email}
-                    onChange={handleChange}
-                    placeholder="satoshi@genesis.in"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[var(--brand)] transition-colors"
-                    disabled={status === "submitting"}
-                  />
-                </div>
-              </div>
+        <FloatingField
+          id="crew-message"
+          name="message"
+          as="textarea"
+          label="What would you like to work on?"
+          hint="Events you have helped run, things you have built, and how much time you can give."
+          className="mt-5"
+          required
+          value={form.message}
+          onChange={update("message", "crew-message")}
+          error={errors["crew-message"]}
+          disabled={submitting}
+        />
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-white/60 mb-1.5">
-                    Domain / Field
-                  </label>
-                  <select
-                    name="domain"
-                    value={form.domain}
-                    onChange={handleChange}
-                    className="w-full bg-[#16161b] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--brand)] transition-colors cursor-pointer"
-                    disabled={status === "submitting"}
-                  >
-                    <option value="engineering">Engineering / Fullstack</option>
-                    <option value="ui_ux_design">UI/UX & 3D Design</option>
-                    <option value="community_ops">Community & Growth</option>
-                    <option value="content_marketing">Content & Media</option>
-                    <option value="events_logistics">Events & Operations</option>
-                  </select>
-                </div>
+        <div className="mt-7 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <FormNotice />
+          <SubmitButton submitting={submitting} label="Send application" />
+        </div>
 
-                <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-white/60 mb-1.5">
-                    Experience Level
-                  </label>
-                  <select
-                    name="experience"
-                    value={form.experience}
-                    onChange={handleChange}
-                    className="w-full bg-[#16161b] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[var(--brand)] transition-colors cursor-pointer"
-                    disabled={status === "submitting"}
-                  >
-                    <option value="Student / Fresher">Student / Fresher</option>
-                    <option value="1-3 years">1–3 Years</option>
-                    <option value="3-5 years">3–5 Years</option>
-                    <option value="5+ years">5+ Years</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-white/60 mb-1.5">
-                    Phone / WhatsApp
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={form.phone}
-                    onChange={handleChange}
-                    placeholder="+91 98765 43210"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[var(--brand)] transition-colors"
-                    disabled={status === "submitting"}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-white/60 mb-1.5">
-                  Portfolio / GitHub / LinkedIn URL
-                </label>
-                <input
-                  type="url"
-                  name="portfolio"
-                  value={form.portfolio}
-                  onChange={handleChange}
-                  placeholder="https://github.com/yourhandle"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[var(--brand)] transition-colors"
-                  disabled={status === "submitting"}
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-white/60 mb-1.5">
-                  Why do you want to build with Genesis? *
-                </label>
-                <textarea
-                  name="whyGenesis"
-                  rows={4}
-                  required
-                  value={form.whyGenesis}
-                  onChange={handleChange}
-                  placeholder="Tell us about what you've built, your passions, and what drives you…"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[var(--brand)] transition-colors resize-none"
-                  disabled={status === "submitting"}
-                />
-              </div>
-
-              {errorMsg && (
-                <div className="text-xs font-mono text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-xl">
-                  {errorMsg}
-                </div>
-              )}
-
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-5 py-3 rounded-xl font-mono text-xs uppercase tracking-wider text-white/60 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={status === "submitting"}
-                  className="px-7 py-3 rounded-xl font-mono text-xs uppercase font-bold tracking-wider text-black bg-[var(--brand)] hover:bg-white transition-all shadow-[0_0_25px_rgba(196,181,253,0.3)] disabled:opacity-50"
-                >
-                  {status === "submitting" ? "Submitting…" : "Submit Application →"}
-                </button>
-              </div>
-            </form>
-          )}
-        </motion.div>
+        <div className="mt-6">
+          <FormAlert message={alert}>
+            {mailtoHref ? (
+              <a href={mailtoHref} className="mt-2 inline-flex min-h-[44px] items-center text-white underline underline-offset-4">
+                Email your application instead →
+              </a>
+            ) : null}
+          </FormAlert>
+        </div>
       </div>
-    </AnimatePresence>
+    </form>
   );
 }

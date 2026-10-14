@@ -1,10 +1,66 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Navbar } from "@widgets/layout";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { PageShell, PageHero } from "@widgets/layout";
+import { CONTACT } from "@shared/config/site";
+import { EASE_OUT } from "@shared/motion";
 
-/* ─── Helpers ─────────────────────────────────────────────────── */
+/* ─── Building blocks for legal copy ─────────────────────────── */
+
+export function Callout({ children }) {
+  return (
+    <div className="my-6 border-l-2 border-[var(--heading)] bg-white/[0.04] px-5 py-4 text-[var(--text)]">
+      {children}
+    </div>
+  );
+}
+
+export function List({ children }) {
+  return <ul className="my-4 list-disc space-y-2 pl-5 marker:text-[var(--heading)]">{children}</ul>;
+}
+
+/** Responsive table: scrolls inside its own box, never the page. */
+export function DataTable({ caption, columns, rows }) {
+  return (
+    <div className="my-6 overflow-x-auto border border-[var(--border)]">
+      <table className="w-full min-w-[36rem] border-collapse text-left text-[15px]">
+        {caption ? <caption className="sr-only">{caption}</caption> : null}
+        <thead>
+          <tr className="bg-white/[0.05]">
+            {columns.map((c) => (
+              <th key={c} scope="col" className="px-4 py-3 font-mono text-[12px] font-normal uppercase tracking-[0.14em] text-[var(--text-dim)]">
+                {c}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row[0]} className="border-t border-[var(--border)] align-top">
+              {row.map((cell, i) =>
+                i === 0 ? (
+                  <th key={i} scope="row" className="px-4 py-3 font-normal text-[var(--text)]">
+                    {cell}
+                  </th>
+                ) : (
+                  <td key={i} className="px-4 py-3 text-[var(--text-dim)]">
+                    {cell}
+                  </td>
+                ),
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ─── Scroll-spy ─────────────────────────────────────────────── */
+
 function useActiveSection(ids) {
   const [active, setActive] = useState(ids[0]);
+  const key = ids.join("|");
 
   useEffect(() => {
     const observers = ids.map((id) => {
@@ -14,473 +70,160 @@ function useActiveSection(ids) {
         ([entry]) => {
           if (entry.isIntersecting) setActive(id);
         },
-        { rootMargin: "-30% 0px -60% 0px", threshold: 0 }
+        { rootMargin: "-25% 0px -65% 0px", threshold: 0 },
       );
       ob.observe(el);
       return ob;
     });
     return () => observers.forEach((o) => o?.disconnect());
-  }, [ids]);
+    // `key` captures the id list; the array identity changes every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 
   return active;
 }
 
-/* ─── Section component ───────────────────────────────────────── */
-function Section({ id, index, title, children }) {
-  const ref = useRef(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const ob = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setVisible(true); },
-      { threshold: 0.08 }
-    );
-    if (ref.current) ob.observe(ref.current);
-    return () => ob.disconnect();
-  }, []);
-
+function TocList({ sections, active, onNavigate }) {
   return (
-    <section
-      ref={ref}
-      id={id}
-      className="legal-section"
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(28px)",
-        transition: `opacity 0.65s cubic-bezier(0.16,1,0.3,1) ${index * 0.07}s, transform 0.65s cubic-bezier(0.16,1,0.3,1) ${index * 0.07}s`,
-      }}
-    >
-      <div className="legal-section-header">
-        <span className="legal-index">
-          {String(index + 1).padStart(2, "0")}
-        </span>
-        <h2 className="legal-section-title">{title}</h2>
-      </div>
-      <div className="legal-section-body">{children}</div>
-    </section>
+    <ol className="space-y-1">
+      {sections.map((s, i) => {
+        const isActive = active === s.id;
+        return (
+          <li key={s.id}>
+            <a
+              href={`#${s.id}`}
+              onClick={onNavigate}
+              aria-current={isActive ? "location" : undefined}
+              className={`group relative flex min-h-[40px] items-start gap-3 py-2 pl-4 text-[15px] leading-snug transition-colors ${
+                isActive ? "text-[var(--heading)]" : "text-[var(--text-dim)] hover:text-white"
+              }`}
+            >
+              {isActive ? (
+                <motion.span
+                  layoutId="legal-toc-indicator"
+                  aria-hidden
+                  className="absolute left-0 top-2 h-[calc(100%-1rem)] w-[2px] bg-[var(--heading)]"
+                  transition={{ duration: 0.35, ease: EASE_OUT }}
+                />
+              ) : (
+                <span aria-hidden className="absolute left-0 top-2 h-[calc(100%-1rem)] w-px bg-white/15" />
+              )}
+              <span className="font-mono text-[12px] leading-[1.6] text-[var(--text-faint)]">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span>{s.title}</span>
+            </a>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
-/* ─── Main LegalPage ──────────────────────────────────────────── */
-export default function LegalPage({ type, sections, lastUpdated }) {
-  const location = useLocation();
-  const isTerms = type === "terms";
-  const sectionIds = sections.map((s) => s.id);
-  const active = useActiveSection(sectionIds);
+/* ─── Page ───────────────────────────────────────────────────── */
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
+const DOCS = [
+  { to: "/privacy", label: "Privacy policy", type: "privacy" },
+  { to: "/terms", label: "Terms of service", type: "terms" },
+];
+
+export default function LegalPage({ type, title, intro, sections, lastUpdated }) {
+  const active = useActiveSection(sections.map((s) => s.id));
+  const other = DOCS.find((d) => d.type !== type);
 
   return (
-    <div className="legal-root">
-      <Navbar />
-
-      {/* ── Hero band ───────────────────────────────────────────── */}
-      <header className="legal-hero">
-        <div className="legal-hero-inner">
-          <p className="legal-eyebrow">Genesis — Legal Documents</p>
-
-          {/* Tab switcher */}
-          <div className="legal-tabs" role="tablist">
-            <Link
-              to="/terms"
-              role="tab"
-              aria-selected={isTerms}
-              className={`legal-tab ${isTerms ? "legal-tab--active" : ""}`}
-            >
-              Terms of Service
-            </Link>
-            <Link
-              to="/privacy"
-              role="tab"
-              aria-selected={!isTerms}
-              className={`legal-tab ${!isTerms ? "legal-tab--active" : ""}`}
-            >
-              Privacy Policy
-            </Link>
-          </div>
-
-          <h1 className="legal-title">
-            {isTerms ? "Terms of Service" : "Privacy Policy"}
-          </h1>
-          <p className="legal-subtitle">
-            {isTerms
-              ? "By using Genesis services you agree to these terms. Read carefully."
-              : "We respect your data. Here's exactly what we collect and why."}
+    <PageShell>
+      <PageHero eyebrow="Legal" title={title} intro={intro}>
+        <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4">
+          <nav aria-label="Legal documents" className="flex gap-2">
+            {DOCS.map((d) => {
+              const current = d.type === type;
+              return (
+                <Link
+                  key={d.to}
+                  to={d.to}
+                  aria-current={current ? "page" : undefined}
+                  className={`inline-flex min-h-[44px] items-center border px-4 font-mono text-[12px] uppercase tracking-[0.14em] transition-colors ${
+                    current
+                      ? "border-[var(--heading)] bg-[var(--heading)] text-[#181818]"
+                      : "border-[var(--border-strong)] text-[var(--text-dim)] hover:border-white hover:text-white"
+                  }`}
+                >
+                  {d.label}
+                </Link>
+              );
+            })}
+          </nav>
+          <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-[var(--text-faint)]">
+            Last updated <time dateTime="2026-10-13">{lastUpdated}</time>
           </p>
-          <div className="legal-meta">
-            <span>Last updated: <strong>{lastUpdated}</strong></span>
-            <span className="legal-meta-sep">·</span>
-            <span>Effective immediately</span>
-          </div>
         </div>
+      </PageHero>
 
-        {/* decorative grid lines */}
-        <div className="legal-hero-grid" aria-hidden />
-      </header>
+      <div className="mx-auto grid max-w-[90rem] gap-10 px-5 pb-24 md:px-12 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-16 lg:pb-32">
+        {/* Table of contents: sticky rail on desktop, collapsible on mobile */}
+        <aside className="lg:sticky lg:top-28 lg:self-start">
+          <details className="group border border-[var(--border)] lg:hidden">
+            <summary className="flex min-h-[48px] cursor-pointer list-none items-center justify-between px-4 font-mono text-[12px] uppercase tracking-[0.16em] text-[var(--text-dim)]">
+              On this page
+              <span aria-hidden className="transition-transform group-open:rotate-45">+</span>
+            </summary>
+            <nav aria-label="On this page" className="border-t border-[var(--border)] px-2 py-3">
+              <TocList sections={sections} active={active} />
+            </nav>
+          </details>
 
-      {/* ── Body ────────────────────────────────────────────────── */}
-      <div className="legal-body">
-        {/* Sticky TOC */}
-        <aside className="legal-toc" aria-label="Table of contents">
-          <p className="legal-toc-label">Contents</p>
-          <nav>
-            {sections.map((s, i) => (
-              <a
-                key={s.id}
-                href={`#${s.id}`}
-                className={`legal-toc-item ${active === s.id ? "legal-toc-item--active" : ""}`}
-              >
-                <span className="legal-toc-num">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="legal-toc-text">{s.title}</span>
-              </a>
-            ))}
+          <nav aria-label="On this page" className="hidden lg:block">
+            <p className="mb-4 font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)]">On this page</p>
+            <TocList sections={sections} active={active} />
           </nav>
 
-          <div className="legal-toc-footer">
-            <p>Questions?</p>
-            <a href="mailto:[EMAIL_ADDRESS]" className="legal-toc-email">
-              [EMAIL_ADDRESS]
+          <div className="mt-8 hidden border-t border-[var(--border)] pt-6 lg:block">
+            <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)]">Questions</p>
+            <a href={`mailto:${CONTACT.email}`} className="mt-3 block break-words text-[15px] text-white underline-offset-4 hover:underline">
+              {CONTACT.email}
             </a>
+            <a href={CONTACT.phoneHref} className="mt-1 block text-[15px] text-[var(--text-dim)] underline-offset-4 hover:text-white hover:underline">
+              {CONTACT.phone}
+            </a>
+            <p className="mt-3 text-sm text-[var(--text-faint)]">We reply {CONTACT.replyTime}.</p>
           </div>
         </aside>
 
-        {/* Content */}
-        <main className="legal-content" id="legal-main">
+        <div className="min-w-0 max-w-[72ch]">
           {sections.map((s, i) => (
-            <Section key={s.id} id={s.id} index={i} title={s.title}>
-              {s.content}
-            </Section>
+            <motion.section
+              key={s.id}
+              id={s.id}
+              aria-labelledby={`${s.id}-title`}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.05 }}
+              transition={{ duration: 0.6, ease: EASE_OUT }}
+              className="scroll-mt-32 border-t border-[var(--border)] py-10 first:border-t-0 first:pt-0 md:py-12"
+            >
+              <h2 id={`${s.id}-title`} className="flex items-baseline gap-4 font-display text-[clamp(1.6rem,3vw,2.4rem)] leading-[1.05] text-[var(--heading)]">
+                <span className="font-mono text-[13px] text-[var(--text-faint)]" aria-hidden>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                {s.title}
+              </h2>
+              <div className="mt-6 text-[17px] leading-[1.75] text-[var(--text-dim)] [&_a]:text-[var(--heading)] [&_a]:underline [&_a]:underline-offset-4 [&_h3]:mb-2 [&_h3]:mt-8 [&_h3]:font-sans [&_h3]:text-lg [&_h3]:text-white [&_p+p]:mt-4 [&_strong]:font-normal [&_strong]:text-white">
+                {s.content}
+              </div>
+            </motion.section>
           ))}
 
-          {/* Footer strip */}
-          <div className="legal-end-strip">
-            <div className="legal-end-inner">
-              <p className="legal-end-label">Still have questions?</p>
-              <a href="mailto:hello@genesishacks.in" className="btn-cinema">
-                Contact Us
-              </a>
-              <Link
-                to={isTerms ? "/privacy" : "/terms"}
-                className="btn-ghost"
-              >
-                {isTerms ? "Read Privacy Policy →" : "Read Terms of Service →"}
-              </Link>
-            </div>
+          <div className="mt-6 flex flex-col gap-4 border-t border-[var(--border)] pt-10 sm:flex-row sm:items-center">
+            <a href={`mailto:${CONTACT.email}`} className="btn-cinema justify-center">
+              Email {CONTACT.email}
+            </a>
+            <Link to={other.to} className="btn-ghost justify-center">
+              Read the {other.label.toLowerCase()} <span aria-hidden>→</span>
+            </Link>
           </div>
-        </main>
+        </div>
       </div>
-
-      <style>{LEGAL_CSS}</style>
-    </div>
+    </PageShell>
   );
 }
-
-/* ─── Scoped styles ───────────────────────────────────────────── */
-const LEGAL_CSS = `
-/* Root */
-.legal-root {
-  min-height: 100svh;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-sans);
-}
-
-/* ── Hero ── */
-.legal-hero {
-  position: relative;
-  padding: 9rem 2.5rem 5rem;
-  border-bottom: 1px solid var(--border);
-  overflow: hidden;
-}
-.legal-hero-inner {
-  position: relative;
-  z-index: 2;
-  max-width: 860px;
-  margin: 0 auto;
-}
-.legal-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  margin: 0 0 2rem;
-}
-
-/* Tabs */
-.legal-tabs {
-  display: flex;
-  gap: 0;
-  margin-bottom: 2.5rem;
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  width: fit-content;
-  overflow: hidden;
-}
-.legal-tab {
-  padding: 10px 22px;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  text-decoration: none;
-  transition: background 250ms ease, color 250ms ease;
-}
-.legal-tab:hover {
-  color: var(--text);
-  background: var(--surface);
-}
-.legal-tab--active {
-  background: var(--surface-2);
-  color: var(--heading);
-  border-right: 1px solid var(--border);
-}
-.legal-tab--active:last-child {
-  border-right: none;
-  border-left: 1px solid var(--border);
-}
-
-.legal-title {
-  font-family: var(--font-display);
-  font-size: clamp(2.8rem, 8vw, 5.5rem);
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-  color: var(--heading);
-  margin: 0 0 1.25rem;
-  line-height: 1;
-}
-.legal-subtitle {
-  font-size: 1.05rem;
-  color: var(--text-dim);
-  max-width: 52ch;
-  line-height: 1.7;
-  margin: 0 0 1.75rem;
-}
-.legal-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 12px;
-  color: var(--text-faint);
-  letter-spacing: 0.04em;
-}
-.legal-meta strong {
-  color: var(--text-dim);
-  font-weight: 500;
-}
-.legal-meta-sep { opacity: 0.4; }
-
-/* Decorative grid */
-.legal-hero-grid {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image:
-    linear-gradient(to right, rgba(196,181,253,0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(196,181,253,0.04) 1px, transparent 1px);
-  background-size: 80px 80px;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
-}
-
-/* ── Body layout ── */
-.legal-body {
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 2.5rem;
-  gap: 0;
-  align-items: start;
-}
-@media (max-width: 860px) {
-  .legal-body { grid-template-columns: 1fr; }
-  .legal-toc { display: none; }
-}
-
-/* ── TOC ── */
-.legal-toc {
-  position: sticky;
-  top: 6rem;
-  padding: 3rem 2rem 3rem 0;
-  border-right: 1px solid var(--border);
-}
-.legal-toc-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  margin: 0 0 1.25rem;
-}
-.legal-toc-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
-  padding: 7px 0;
-  text-decoration: none;
-  color: var(--text-faint);
-  font-size: 12.5px;
-  line-height: 1.45;
-  border-left: 2px solid transparent;
-  padding-left: 12px;
-  margin-left: -12px;
-  transition: color 250ms ease, border-color 250ms ease;
-}
-.legal-toc-item:hover { color: var(--text-dim); }
-.legal-toc-item--active {
-  color: var(--heading);
-  border-left-color: var(--heading);
-}
-.legal-toc-num {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-faint);
-  margin-top: 2px;
-  flex-shrink: 0;
-  transition: color 250ms ease;
-}
-.legal-toc-item--active .legal-toc-num { color: var(--heading); }
-.legal-toc-text { flex: 1; }
-
-.legal-toc-footer {
-  margin-top: 3rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
-  font-size: 11.5px;
-  color: var(--text-faint);
-}
-.legal-toc-footer p { margin: 0 0 0.4rem; }
-.legal-toc-email {
-  color: var(--brand);
-  text-decoration: none;
-  font-size: 12px;
-  border-bottom: 1px solid transparent;
-  transition: border-color 250ms ease;
-}
-.legal-toc-email:hover { border-bottom-color: var(--brand); }
-
-/* ── Content ── */
-.legal-content {
-  padding: 3.5rem 0 3.5rem 3.5rem;
-}
-@media (max-width: 860px) {
-  .legal-content { padding: 2.5rem 0; }
-}
-
-/* ── Sections ── */
-.legal-section {
-  padding: 2.75rem 0;
-  border-bottom: 1px solid var(--border);
-}
-.legal-section:last-of-type { border-bottom: none; }
-
-.legal-section-header {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-.legal-index {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  color: var(--brand);
-  flex-shrink: 0;
-}
-.legal-section-title {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--heading);
-  margin: 0;
-  line-height: 1.2;
-}
-
-.legal-section-body {
-  max-width: 64ch;
-}
-.legal-section-body p {
-  font-size: 0.975rem;
-  line-height: 1.8;
-  color: var(--text-dim);
-  margin: 0 0 1.1rem;
-}
-.legal-section-body p:last-child { margin-bottom: 0; }
-.legal-section-body strong {
-  color: var(--text);
-  font-weight: 500;
-}
-.legal-section-body a {
-  color: var(--brand);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color 250ms ease;
-}
-.legal-section-body a:hover { border-bottom-color: var(--brand); }
-
-/* List styles */
-.legal-list {
-  list-style: none;
-  padding: 0;
-  margin: 0.5rem 0 1rem;
-}
-.legal-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  font-size: 0.95rem;
-  line-height: 1.75;
-  color: var(--text-dim);
-  padding: 0.35rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-.legal-list li::before {
-  content: "—";
-  color: var(--brand);
-  flex-shrink: 0;
-  font-size: 0.8em;
-  margin-top: 0.25em;
-}
-
-/* Highlight card */
-.legal-callout {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--brand);
-  border-radius: 2px;
-  padding: 1.25rem 1.5rem;
-  margin: 1.25rem 0;
-  font-size: 0.92rem;
-  line-height: 1.75;
-  color: var(--text-dim);
-}
-.legal-callout strong { color: var(--heading); }
-
-/* ── End strip ── */
-.legal-end-strip {
-  margin-top: 3.5rem;
-  padding: 2.5rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-}
-.legal-end-inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 1rem;
-}
-.legal-end-label {
-  font-size: 0.9rem;
-  color: var(--text-dim);
-  margin: 0;
-  flex: 1;
-}
-`;

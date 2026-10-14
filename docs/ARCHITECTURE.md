@@ -28,17 +28,13 @@ Do not place page markup or domain behavior here.
 
 ### `pages/`
 
-Route-level composition:
+Route-level composition, one folder per route (`home/`, `events/`, `partner/`, `privacy/`, ...).
 
-- `home/`;
-- `gallery/`;
-- `events/`.
-
-Pages may assemble widgets and features. Route modules are lazy-loaded in `app/router/AppRouter.jsx`.
+Pages may assemble widgets and features. Route modules are lazy-loaded in `app/router/AppRouter.jsx`. Every page renders inside `widgets/layout/PageShell.jsx` (header, cursor, smooth scroll, per-route SEO, footer); most start with `PageHero`.
 
 ### `widgets/`
 
-Reusable page-level chrome such as the navbar, footer, intro, cursor, marquee, and chapter rail. Widgets may import from `shared` and `infrastructure`, but not from pages.
+Reusable page-level chrome such as `PageShell`, `PageHero`, the navbar, footer, intro, cursor, marquee, and chapter rail. Widgets may import from `shared` and `infrastructure`, but not from pages.
 
 ### `features/`
 
@@ -48,10 +44,13 @@ Self-contained experiences such as hero, about, event showcase, contact, and gal
 
 Generic modules with no domain ownership:
 
+- `config/` — `site.js` (every public fact: contact, numbers, events) and `routes.json` (title, description and H1 per route). Pages read facts from here instead of hard-coding them;
+- `motion/` — shared animation primitives and easing curves;
+- `seo/` — `useSeo`, which sets title, description, canonical and Open Graph tags per route;
 - `ui/` — reusable primitives;
 - `hooks/` — generic lifecycle hooks;
 - `lib/` — framework-neutral helpers;
-- `data/` — shared static data;
+- `data/` — shared static data (`events.js` is the curated event archive);
 - `styles/` — global design tokens and shell styles;
 - `constants/` — stable IDs and constants.
 
@@ -76,11 +75,12 @@ Use a feature's `index.js` for its public API. Deep imports are acceptable only 
 
 ## Adding a route
 
-1. Add a folder under `pages/`.
+1. Add a folder under `pages/` and wrap the page in `PageShell`.
 2. Keep the page focused on composition.
 3. Add a lazy import and route in `app/router/AppRouter.jsx`.
-4. Confirm direct URL refresh works through `historyApiFallback`.
-5. Test mobile, keyboard navigation, reduced motion, and production build.
+4. Add the route to `shared/config/routes.json` (title, description, h1, priority). The build-time prerender (`frontend/scripts/prerender.mjs`) writes static HTML for every entry and adds it to `sitemap.xml`. A route that is missing there gets an HTTP 404 on a direct visit, because `vercel.json` has no catch-all rewrite.
+5. Run `npm run build` and check `build/<route>.html` exists.
+6. Test mobile, keyboard navigation, reduced motion, and the production build.
 
 ## Adding a feature
 

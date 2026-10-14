@@ -1,0 +1,7 @@
+# Genesis Hacks: www.genesishacks.com
+User-agent: *
+Allow: /
+Disallow: /admin-events
+Disallow: /api/
+
+Sitemap: https://www.genesishacks.com/sitemap.xml

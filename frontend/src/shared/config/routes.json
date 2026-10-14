@@ -1,0 +1,98 @@
+{
+  "/": {
+    "title": "Genesis Hacks: hackathon partnerships in India",
+    "description": "Genesis connects companies with India's student hackathon and builder community. 140+ events, 21,699 attendees. Next up: Hackers Occupied Delhi, January 2027.",
+    "h1": "Reach India's student builders at hackathons.",
+    "priority": "1.0"
+  },
+  "/events/hackers-occupied-delhi": {
+    "title": "Hackers Occupied Delhi 2027 | Genesis Hacks",
+    "description": "Hackers Occupied Delhi: 100 teams, six tracks (AI, Web3, FinTech, Agro, Healthcare, CyberSecurity), Delhi NCR, mid-January 2027 (tentative). Sponsor or register interest.",
+    "h1": "Hackers Occupied Delhi 2027",
+    "priority": "0.9"
+  },
+  "/partner": {
+    "title": "Sponsor a hackathon in India | Genesis Hacks",
+    "description": "Sponsor Hackers Occupied Delhi or independent student hackathons across India. Tell us your goal, budget and timeline and we shortlist events that fit.",
+    "h1": "Partner with Genesis",
+    "priority": "0.9"
+  },
+  "/events": {
+    "title": "Events archive | Genesis Hacks",
+    "description": "Every hackathon, meetup and bootcamp Genesis has run or partnered on across India, with the role Genesis played at each.",
+    "h1": "Events archive",
+    "priority": "0.8"
+  },
+  "/events/hackers-occupied-pune": {
+    "title": "Hackers Occupied Pune 2026 recap | Genesis Hacks",
+    "description": "Hackers Occupied Pune took place on 22–23 August 2026 at VIT Pune. Schedule, photos and participant certificates.",
+    "h1": "Hackers Occupied Pune",
+    "priority": "0.6"
+  },
+  "/about": {
+    "title": "About Genesis Hacks",
+    "description": "Genesis connects companies with India's student hackathon and builder community and runs its own series, Hackers Occupied.",
+    "h1": "About Genesis",
+    "priority": "0.7"
+  },
+  "/values": {
+    "title": "How we run events | Genesis Hacks",
+    "description": "The principles Genesis follows when it runs or partners on a hackathon.",
+    "h1": "How we run events",
+    "priority": "0.4"
+  },
+  "/team": {
+    "title": "Team | Genesis Hacks",
+    "description": "The people who run Genesis Hacks.",
+    "h1": "The people who run Genesis",
+    "priority": "0.5"
+  },
+  "/contact": {
+    "title": "Contact | Genesis Hacks",
+    "description": "Sponsors and partners: email partner@genesishacks.com or call +91 70433 88006. Students and campus communities: use the form.",
+    "h1": "Contact Genesis",
+    "priority": "0.7"
+  },
+  "/collaborate": {
+    "title": "Co-host, judge or mentor | Genesis Hacks",
+    "description": "Co-host a hackathon with Genesis, run a track, list your event, or judge and mentor at one.",
+    "h1": "Collaborate with Genesis",
+    "priority": "0.6"
+  },
+  "/careers": {
+    "title": "Join the crew | Genesis Hacks",
+    "description": "Help Genesis run hackathons across India. Tell us what you want to work on.",
+    "h1": "Join the Genesis crew",
+    "priority": "0.4"
+  },
+  "/guide": {
+    "title": "How to run a hackathon: a practical guide | Genesis Hacks",
+    "description": "A practical guide to planning, funding and running a student hackathon in India.",
+    "h1": "How to run a hackathon",
+    "priority": "0.5"
+  },
+  "/gallery": {
+    "title": "Photos from Hackers Occupied Pune | Genesis Hacks",
+    "description": "Photos from Hackers Occupied Pune, 22–23 August 2026 at VIT Pune.",
+    "h1": "Gallery",
+    "priority": "0.4"
+  },
+  "/certificates/hackers-occupied-pune": {
+    "title": "Hackers Occupied Pune certificates | Genesis Hacks",
+    "description": "Participants of Hackers Occupied Pune 2026 can download their certificate with their registered email and phone.",
+    "h1": "Download your certificate",
+    "priority": "0.3"
+  },
+  "/privacy": {
+    "title": "Privacy policy | Genesis Hacks",
+    "description": "How Genesis Hacks collects, uses and protects personal data under India's Digital Personal Data Protection Act, 2023.",
+    "h1": "Privacy policy",
+    "priority": "0.2"
+  },
+  "/terms": {
+    "title": "Terms of service | Genesis Hacks",
+    "description": "The terms that apply when you use genesishacks.com.",
+    "h1": "Terms of service",
+    "priority": "0.2"
+  }
+}

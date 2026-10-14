@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ErrorBoundary from "@shared/ui/ErrorBoundary";
 import ConsentBanner from "@shared/consent/ConsentBanner";
 import PageLoader from "@/components/ui/page-loader";
+import { RouteTransition } from "@shared/motion";
 
 const HomePage = lazy(() => import("@pages/home/HomePage"));
 const GalleryPage = lazy(() => import("@pages/gallery/GalleryPage"));
@@ -16,18 +17,16 @@ const CollaboratePage = lazy(() => import("@pages/partner/CollaboratePage"));
 const PrivacyPage = lazy(() => import("@pages/privacy/PrivacyPage"));
 const TermsPage = lazy(() => import("@pages/terms/TermsPage"));
 const TeamPage = lazy(() => import("@pages/team/TeamPage"));
-const AdminEventsPage = lazy(() => import("@pages/admin/AdminEventsPage"));
 const GuidePage = lazy(() => import("@pages/guide/GuidePage"));
 const CertificatePage = lazy(() => import("@pages/certificates/CertificatePage"));
-import HackersOccupiedPunePage from "@pages/events/HackersOccupiedPunePage";
+const HackersOccupiedPunePage = lazy(() => import("@pages/events/HackersOccupiedPunePage"));
+const HackersOccupiedDelhiPage = lazy(() => import("@pages/events/HackersOccupiedDelhiPage"));
 const NotFoundPage = lazy(() => import("@pages/not-found/NotFoundPage"));
 
 function RouteFallback() {
   return (
     <div
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0c0c0f] text-white"
-      role="status"
-      aria-live="polite"
     >
       <PageLoader />
     </div>
@@ -81,12 +80,23 @@ export default function AppRouter() {
           />
           <Route
             path="/hackers-occupied-pune"
+            element={<Navigate to="/events/hackers-occupied-pune" replace />}
+          />
+          <Route
+            path="/events/hackers-occupied-delhi"
             element={
-              <PageBoundary title="Hackers Occupied Pune failed to load.">
-                <HackersOccupiedPunePage />
+              <PageBoundary title="Hackers Occupied Delhi failed to load.">
+                <HackersOccupiedDelhiPage />
               </PageBoundary>
             }
           />
+          <Route
+            path="/hackers-occupied-delhi"
+            element={<Navigate to="/events/hackers-occupied-delhi" replace />}
+          />
+          <Route path="/sponsors" element={<Navigate to="/partner" replace />} />
+          <Route path="/partners" element={<Navigate to="/partner" replace />} />
+          <Route path="/sponsor" element={<Navigate to="/partner" replace />} />
           <Route
             path="/certificates/hackers-occupied-pune"
             element={
@@ -176,14 +186,6 @@ export default function AppRouter() {
             }
           />
           <Route
-            path="/admin-events"
-            element={
-              <PageBoundary title="Admin Portal failed to load.">
-                <AdminEventsPage />
-              </PageBoundary>
-            }
-          />
-          <Route
             path="/guide"
             element={
               <PageBoundary title="Guide failed to load.">
@@ -199,7 +201,7 @@ export default function AppRouter() {
               </PageBoundary>
             }
           />
-          {/* Catch-all — never blank-screen unknown URLs */}
+          {/* Catch-all: never blank-screen unknown URLs */}
           <Route
             path="*"
             element={
@@ -210,6 +212,7 @@ export default function AppRouter() {
           />
         </Routes>
       </Suspense>
+      <RouteTransition />
       <ConsentBanner />
     </BrowserRouter>
   );

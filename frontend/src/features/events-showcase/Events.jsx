@@ -1,278 +1,101 @@
-import React, { useRef, useState, useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import { motion, useTransform } from "framer-motion";
-import { LANDING } from "@shared/constants/testIds";
-import { useSectionScroll } from "@shared/hooks/useSectionScroll";
-import Tilt from "@shared/ui/Tilt";
-import { eventService } from "@shared/services/eventService";
+import { motion } from "framer-motion";
+import { STATS, SERIES } from "@shared/config/site";
+import { PAST_EVENTS } from "@shared/data/events";
+import { EASE_OUT, Magnetic, SplitText } from "@shared/motion";
+import SectionLabel from "@features/home/SectionLabel";
 import EventMap from "./EventMap";
 
-function PastEventCard({ event, index }) {
-    const cardRef = useRef(null);
-    const { scrollYProgress } = useSectionScroll({ target: cardRef, offset: ["start 90%", "end 20%"] });
-    const clip = useTransform(scrollYProgress, [0, 0.35], ["inset(0 0 100% 0)", "inset(0 0 0% 0)"]);
-    const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "-15%"]);
-    const titleX = useTransform(scrollYProgress, [0, 0.6], [40, 0]);
-    const titleOpacity = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
+const RECENT = PAST_EVENTS.filter((e) => e.iso).slice(0, 7);
 
-    return (
-        <Tilt className="relative" max={4} glare>
-            <motion.article
-                ref={cardRef}
-                data-testid={event.testid || `evt-card-${event.id}`}
-                data-cursor
-                data-cursor-label="View"
-                initial={{ opacity: 0, y: 60 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 1, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                className="group relative border border-[var(--border)] bg-[var(--surface)] lift overflow-hidden h-full flex flex-col justify-between"
-            >
-            <div className="frame aspect-[16/10] overflow-hidden relative bg-black/40">
-                <motion.div style={{ clipPath: clip, WebkitClipPath: clip }} className="absolute inset-0">
-                    <motion.img src={event.image} alt={event.title} loading="lazy" decoding="async" style={{ y: imgY }} className="w-full h-[120%] object-cover" />
-                </motion.div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
-                <div className="absolute top-5 left-5 flex items-center gap-2">
-                    <span className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-[0.2em] bg-black/60 backdrop-blur border border-white/20 text-white font-bold">
-                        {event.status === 'upcoming' ? '● Upcoming' : 'Past · Archived'}
-                    </span>
-                    {event.category && (
-                        <span className="px-2.5 py-1 text-[9px] font-mono uppercase tracking-wider bg-white/10 backdrop-blur border border-white/15 text-white/80">
-                            {event.category}
-                        </span>
-                    )}
-                </div>
-                <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between">
-                    <span className="overline text-white">{event.kicker || `Edition · ${event.date}`}</span>
-                    <span className="font-mono text-xs text-white/70">{event.date}</span>
-                </div>
-            </div>
+function Row({ event, index }) {
+  // On phones: date + role on one line, then title, then city · type.
+  // From md up the wrappers dissolve (md:contents) into the 12-col grid.
+  const content = (
+    <>
+      <span className="flex items-center justify-between gap-4 md:contents">
+        <span className="font-mono text-[13px] tracking-[0.12em] text-[var(--text-faint)] md:col-span-2">
+          {event.date}
+        </span>
+        <span className="w-fit border border-white/25 px-2.5 py-1 font-mono text-[12px] uppercase tracking-[0.14em] text-white/85 md:order-last md:col-span-1 md:justify-self-end">
+          {event.role === "Organiser" ? "Ours" : "Partner"}
+        </span>
+      </span>
+      <span className="font-display text-[clamp(1.6rem,3.4vw,2.9rem)] leading-[0.95] text-[var(--heading)] md:col-span-5">
+        {event.title}
+      </span>
+      <span className="flex flex-wrap gap-x-3 md:contents">
+        <span className="text-base text-white/80 md:col-span-2">{event.city}</span>
+        <span className="text-base text-[var(--text-dim)] md:col-span-2 md:text-sm">{event.category}</span>
+      </span>
+    </>
+  );
+  const cls =
+    "event-row relative grid gap-2 border-b border-white/10 py-6 md:grid-cols-12 md:items-center md:gap-6";
 
-            <div className="p-7 md:p-10 flex-1 flex flex-col justify-between">
-                <div>
-                    <motion.h3 style={{ x: titleX, opacity: titleOpacity }} className="font-display text-3xl md:text-4xl tracking-tight text-[var(--heading)]">{event.title}</motion.h3>
-                    {event.subtitle && (<p className="mt-2 text-sm text-[var(--text-dim)] italic">{event.subtitle}</p>)}
-                    <p className="overline mt-3">{event.city || event.location}</p>
-                    <p className="mt-5 text-[var(--text-dim)] leading-relaxed max-w-[52ch] text-sm">{event.blurb}</p>
-                </div>
-
-                <div>
-                    <div className="mt-8 pt-6 border-t border-[var(--border)] grid grid-cols-2 gap-y-4 gap-x-6">
-                        <div>
-                            <div className="overline">Date · Time</div>
-                            <div className="mt-1.5 text-sm text-[var(--text)] font-mono">{event.date}</div>
-                            <div className="text-xs text-[var(--text-dim)] font-mono">{event.time || '10:00 AM – 5:00 PM'}</div>
-                        </div>
-                        <div>
-                            <div className="overline">Hosts</div>
-                            <div className="mt-1.5 text-sm text-[var(--text)] leading-tight">{event.hosts || 'Genesis Team'}</div>
-                        </div>
-                    </div>
-
-                    {event.luma && (
-                        <a href={event.luma} target="_blank" rel="noopener noreferrer" data-testid={`${event.id}-luma`} data-cursor data-cursor-label="Luma" className="mt-6 inline-flex items-center gap-2 text-xs font-mono uppercase tracking-[0.2em] text-[var(--text-dim)] hover:text-[var(--text)] transition-colors link-draw">
-                            Reserve / View Details <span aria-hidden>↗</span>
-                        </a>
-                    )}
-                </div>
-            </div>
-            </motion.article>
-        </Tilt>
-    );
-}
-
-function UpcomingPanel({ upcomingEvent }) {
-    const panelRef = useRef(null);
-    const { scrollYProgress: panelProgress } = useSectionScroll({ target: panelRef, offset: ["start end", "end start"] });
-    const posterScale = useTransform(panelProgress, [0, 1], [0.98, 1.06]);
-    const posterY = useTransform(panelProgress, [0, 1], ["2%", "-2%"]);
-    const titleY = useTransform(panelProgress, [0, 1], [30, -30]);
-
-    const activeEvent = upcomingEvent || {
-        title: "HACKERS OCCUPIED PUNE",
-        subtitle: "sudo takeover --city pune · Genesis Creator-First Hackathon",
-        blurb: "24 hours of innovation, collaboration, and building at Vishwakarma Institute of Technology (VIT), Pune. Featuring Agentic AI & Web3 tracks, mentorship from industry leaders, and the signature Creator Challenge.",
-        date: "22–23 August 2026",
-        time: "24-Hour Hybrid Sprint",
-        city: "VIT, Pune",
-        image: "/assets/BrandImg/1.png",
-        luma: "https://hackculture.io/hackathons/hackers-occupied-pune",
-    };
-
-    return (
-        <motion.div
-            ref={panelRef}
-            data-testid={LANDING.upcomingPanel}
-            id="upcoming"
-            initial={{ opacity: 0, y: 60 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative mt-20 md:mt-28 border border-[var(--border)] bg-[var(--surface)] overflow-hidden"
-        >
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 px-5 sm:px-6 md:px-10 py-4 border-b border-[var(--border)] bg-[var(--bg)]">
-                <div className="flex items-center gap-3">
-                    <span className="block w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
-                    <span className="overline text-[var(--text)] font-bold">Registrations open // Flagship Edition</span>
-                </div>
-                <span className="overline text-left sm:text-right">Vishwakarma Institute of Technology, Pune</span>
-            </div>
-
-            <div className="grid md:grid-cols-12">
-                <div className="md:col-span-5 relative bg-[var(--bg-2)] flex items-center justify-center p-6 md:p-10 border-b md:border-b-0 md:border-r border-[var(--border)]">
-                    <motion.div style={{ scale: posterScale, y: posterY }} className="relative w-full max-w-[420px] aspect-square overflow-hidden frame shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)] rounded-2xl border border-white/10">
-                        <img src={activeEvent.image || "/assets/BrandImg/1.png"} alt={activeEvent.title} className="absolute inset-0 w-full h-full object-cover" />
-                    </motion.div>
-                </div>
-
-                <div className="md:col-span-7 p-6 sm:p-8 md:p-12 bg-[var(--bg)] flex flex-col justify-between">
-                    <motion.div style={{ y: titleY }}>
-                        <span className="overline text-[var(--brand)] block mb-3 font-bold">sudo takeover --city pune</span>
-
-                        <h3 className="font-sans font-extrabold text-3xl sm:text-5xl md:text-6xl leading-[0.96] tracking-tight text-[var(--heading)] uppercase">
-                            {activeEvent.title}
-                        </h3>
-
-                        <p className="mt-3 text-sm text-[var(--text-dim)] italic">{activeEvent.subtitle}</p>
-
-                        <p className="mt-5 text-[var(--text-dim)] max-w-[52ch] leading-relaxed">
-                            {activeEvent.blurb}
-                        </p>
-
-                        <div className="mt-6 flex flex-wrap gap-2">
-                            <span className="px-2.5 py-1 text-[11px] font-mono uppercase tracking-wider bg-[var(--brand)]/10 text-[var(--brand)] border border-[var(--brand)]/30">Agentic AI Track</span>
-                            <span className="px-2.5 py-1 text-[11px] font-mono uppercase tracking-wider bg-[var(--brand)]/10 text-[var(--brand)] border border-[var(--brand)]/30">Web3 & Blockchain Track</span>
-                            <span className="px-2.5 py-1 text-[11px] font-mono uppercase tracking-wider bg-[var(--brand)]/10 text-[var(--brand)] border border-[var(--brand)]/30">Creator Challenge (30 Marks)</span>
-                        </div>
-
-                        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 max-w-lg border-t border-b border-[var(--border)] py-6">
-                            <div><div className="overline">Date</div><div className="mt-2 font-display text-xl text-[var(--heading)] leading-none">{activeEvent.date}</div></div>
-                            <div><div className="overline">Format</div><div className="mt-2 font-display text-xl text-[var(--heading)] leading-none">24-Hour Hybrid</div></div>
-                            <div><div className="overline">Location</div><div className="mt-2 font-display text-xl text-[var(--heading)] leading-none">VIT, Pune</div></div>
-                        </div>
-                    </motion.div>
-
-                    <div className="mt-10 flex flex-col sm:flex-row sm:items-center gap-4">
-                        <a
-                            href={activeEvent.luma || "https://hackculture.io/hackathons/hackers-occupied-pune"}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            data-testid={LANDING.rsvpSubmit}
-                            data-cursor
-                            data-cursor-label="Register"
-                            className="btn-cinema self-start group"
-                        >
-                            <span>Register Now on HackCulture</span>
-                            <span aria-hidden className="transition-transform group-hover:translate-x-1">↗</span>
-                        </a>
-                        <Link
-                            to="/events/hackers-occupied-pune"
-                            className="px-5 py-3 rounded-xl border border-white/20 hover:border-white/40 text-xs font-mono font-bold uppercase tracking-wider text-white bg-white/5 hover:bg-white/10 transition-all flex items-center gap-2 self-start"
-                        >
-                            <span>📅 Schedule & Live Timer</span>
-                            <span aria-hidden>→</span>
-                        </Link>
-                    </div>
-                    <p className="mt-3 text-[11px] font-mono uppercase tracking-[0.18em] text-[var(--text-faint)] max-w-[45ch]">
-                        Registrations live on HackCulture. 43 scheduled event activities live on site.
-                    </p>
-                </div>
-            </div>
-        </motion.div>
-    );
+  return (
+    <motion.li
+      initial={{ opacity: 0, x: -24 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, amount: 0.5 }}
+      transition={{ duration: 0.8, delay: index * 0.05, ease: EASE_OUT }}
+    >
+      {event.path ? (
+        <Link to={event.path} className={`${cls} group`}>
+          {content}
+        </Link>
+      ) : (
+        <div className={cls}>{content}</div>
+      )}
+    </motion.li>
+  );
 }
 
 export default function Events() {
-    const [eventsList, setEventsList] = useState(() => eventService.getEvents());
-    const [showAll, setShowAll] = useState(false);
+  return (
+    <section id="events" aria-labelledby="events-title" className="relative z-[3] border-t border-white/10 bg-[#181818] py-24 md:py-36">
+      <div className="mx-auto max-w-[90rem] px-5 md:px-10">
+        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <div>
+            <SectionLabel id="events" />
+            <SplitText
+              as="h2"
+              id="events-title"
+              text="Events"
+              className="mt-6 font-display text-[clamp(3rem,9vw,8rem)] leading-[0.88] text-[var(--heading)]"
+            />
+          </div>
+          <p className="max-w-[44ch] text-lg leading-relaxed text-[var(--text-dim)]">
+            {STATS.eventsLabel} events. Our own series is {SERIES.name}. We also partner with
+            hackathons run by student communities. &ldquo;Partner&rdquo; means Genesis was Event Partner, not the organiser.
+          </p>
+        </div>
 
-    useEffect(() => {
-        const unsubscribe = eventService.subscribe((updated) => {
-            setEventsList(updated);
-        });
-        return () => unsubscribe();
-    }, []);
+        <div className="mt-14 hidden grid-cols-12 gap-6 border-b border-white/15 pb-3 font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)] md:grid">
+          <span className="col-span-2">Date</span>
+          <span className="col-span-5">Event</span>
+          <span className="col-span-2">City</span>
+          <span className="col-span-2">Type</span>
+          <span className="col-span-1 justify-self-end">Role</span>
+        </div>
+        <ol className="mt-4 md:mt-0">
+          {RECENT.map((e, i) => (
+            <Row key={e.id} event={e} index={i} />
+          ))}
+        </ol>
 
-    const upcomingEvents = eventsList.filter((e) => e.status === 'upcoming');
-    const pastEvents = eventsList.filter((e) => e.status === 'past');
-    const featuredUpcoming = upcomingEvents[0];
+        <div className="mt-12 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[var(--text-dim)]">Search all past events by city, year, type and role.</p>
+          <Magnetic strength={0.25}>
+            <Link to="/events" className="btn-cinema" data-cursor data-cursor-label="Archive">
+              Browse {PAST_EVENTS.length} archived events <span aria-hidden>→</span>
+            </Link>
+          </Magnetic>
+        </div>
 
-    const visibleEvents = showAll ? pastEvents : pastEvents.slice(0, 4);
-
-    return (
-        <section id="events" className="relative py-28 md:py-40 z-[3] border-t border-border">
-            <div className="max-w-[1400px] mx-auto px-6 md:px-10">
-                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-16">
-                    <div>
-                        <div className="flex items-center gap-3 mb-6">
-                            <span className="block w-10 h-px bg-[var(--text-dim)]" />
-                            <span className="overline">Chapter 03 · Programme</span>
-                        </div>
-                        <h2 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight leading-[0.95] text-[var(--heading)] max-w-[20ch]">
-                            Events / Crafting high-octane gatherings.
-                        </h2>
-                    </div>
-                    <div className="md:max-w-md space-y-4">
-                        <p className="text-[var(--text-dim)] leading-relaxed">
-                            Two flagship formats, dozens of editions. Each event is staged like a chapter — moody, intimate, and built to spark real collaboration.
-                        </p>
-                        <Link to="/admin-events" className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-[var(--brand)] hover:underline">
-                          ⚙ Admin Event Portal →
-                        </Link>
-                    </div>
-                </div>
-
-                {/* Upcoming Headline Event Panel */}
-                <UpcomingPanel upcomingEvent={featuredUpcoming} />
-
-                {/* Past Events Grid */}
-                <div className="mt-24">
-                    <div className="mb-10 flex items-center justify-between border-b border-[var(--border)] pb-4">
-                        <div>
-                            <span className="overline text-[var(--brand)]">Past Editions Archive</span>
-                            <h3 className="font-display text-3xl md:text-4xl text-[var(--heading)] uppercase tracking-tight mt-1">
-                                Past Events
-                            </h3>
-                        </div>
-                        <span className="font-mono text-xs text-[var(--text-dim)]">{pastEvents.length} ARCHIVED EDITIONS</span>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-6 md:gap-10">
-                        {visibleEvents.map((e, i) => (<PastEventCard key={e.id} event={e} index={i} />))}
-                    </div>
-
-                    {pastEvents.length > 4 && (
-                        <div className="mt-12 flex justify-center">
-                            <button
-                                onClick={() => setShowAll(!showAll)}
-                                className="btn-cinema"
-                                data-cursor
-                                data-cursor-label={showAll ? "Collapse" : "Expand"}
-                            >
-                                {showAll ? "Show Less" : `Show More Events (${pastEvents.length - 4} More)`}
-                            </button>
-                        </div>
-                    )}
-                </div>
-                
-                {/* Show More Events CTA */}
-                <div className="mt-20 flex flex-col items-center justify-center text-center border border-dashed border-[var(--border)] p-12 bg-white/[0.01] backdrop-blur-md rounded-lg">
-                    <p className="overline text-[var(--brand)] mb-3">Archive & Gallery</p>
-                    <h3 className="font-display text-3xl md:text-5xl text-[var(--heading)] tracking-tight mb-4">
-                        Want to see the full list of events?
-                    </h3>
-                    <p className="text-[var(--text-dim)] max-w-md mb-8 leading-relaxed">
-                        Step into our interactive Event Page to search, filter, and explore all past workshops, meetups, and creative hackathons with high-fidelity media.
-                    </p>
-                    <Link to="/events" className="btn-cinema flex items-center gap-2 group">
-                        <span>Explore Full Events Gallery</span>
-                        <span aria-hidden className="transition-transform group-hover:translate-x-1">→</span>
-                    </Link>
-                </div>
-
-                <EventMap />
-            </div>
-        </section>
-    );
+        <EventMap />
+      </div>
+    </section>
+  );
 }

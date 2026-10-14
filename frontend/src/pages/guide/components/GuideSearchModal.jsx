@@ -1,31 +1,44 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ALL_GUIDE_ARTICLES } from "@/features/guide/guideData";
 
 export default function GuideSearchModal({ isOpen, onClose, onSelectArticle }) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const returnFocus = useRef(null);
+  const inputRef = useRef(null);
 
-  // Filter articles based on query
-  const filtered = ALL_GUIDE_ARTICLES.filter((art) => {
-    if (!query.trim()) return true;
-    const q = query.toLowerCase();
-    const titleMatch = art.title.toLowerCase().includes(q);
-    const descMatch = art.desc.toLowerCase().includes(q);
-    const catMatch = art.categoryTitle.toLowerCase().includes(q);
-    const sectionMatch = art.content?.sections?.some(
-      (s) => s.title.toLowerCase().includes(q) || s.text.toLowerCase().includes(q)
-    );
-    return titleMatch || descMatch || catMatch || sectionMatch;
-  });
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return ALL_GUIDE_ARTICLES;
+    return ALL_GUIDE_ARTICLES.filter((art) => {
+      const sections = art.content?.sections || [];
+      return (
+        art.title.toLowerCase().includes(q) ||
+        art.desc.toLowerCase().includes(q) ||
+        art.categoryTitle.toLowerCase().includes(q) ||
+        sections.some((s) => s.title.toLowerCase().includes(q) || (s.text || "").toLowerCase().includes(q))
+      );
+    });
+  }, [query]);
 
   useEffect(() => {
     setSelectedIndex(0);
   }, [query]);
 
+  // Move focus in on open and back to whatever opened it on close.
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!isOpen) return;
+    if (isOpen) {
+      returnFocus.current = document.activeElement;
+      window.setTimeout(() => inputRef.current?.focus(), 0);
+    } else if (returnFocus.current) {
+      returnFocus.current.focus?.();
+      returnFocus.current = null;
+    }
+  }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKeyDown = (e) => {
       if (e.key === "Escape") {
         onClose();
       } else if (e.key === "ArrowDown") {
@@ -41,89 +54,73 @@ export default function GuideSearchModal({ isOpen, onClose, onSelectArticle }) {
         onClose();
       }
     };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [isOpen, filtered, selectedIndex, onClose, onSelectArticle]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/80 backdrop-blur-md">
-      {/* Backdrop overlay */}
-      <div className="fixed inset-0" onClick={onClose} />
-
-      {/* Modal Dialog */}
-      <div className="relative w-full max-w-2xl bg-[#131518] border border-white/20 shadow-2xl rounded-lg overflow-hidden flex flex-col z-10 animate-in fade-in zoom-in-95 duration-150">
-        {/* Search Input Box */}
-        <div className="flex items-center px-4 py-3.5 border-b border-white/10 gap-3 bg-[#181a1f]">
-          <svg className="w-5 h-5 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+    <div className="fixed inset-0 z-[120] flex items-start justify-center bg-black/80 px-4 pt-16 backdrop-blur-md sm:pt-24">
+      <button type="button" aria-label="Close search" className="fixed inset-0 cursor-default" onClick={onClose} />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search the guide"
+        className="relative z-10 flex w-full max-w-2xl flex-col overflow-hidden border border-white/20 bg-[#131518] shadow-2xl"
+      >
+        <div className="flex items-center gap-3 border-b border-white/10 bg-[#181a1f] px-4 py-3">
           <input
-            type="text"
-            autoFocus
+            ref={inputRef}
+            type="search"
+            aria-label="Search guide topics"
+            aria-controls="guide-search-results"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search guide topics, checklists, templates..."
-            className="flex-1 bg-transparent text-white text-sm outline-none placeholder:text-white/40 font-sans"
+            placeholder="Search topics, checklists, budgets"
+            className="min-h-[44px] flex-1 bg-transparent text-base text-white outline-none placeholder:text-white/50"
           />
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-xs font-mono px-2 py-1 bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors"
-          >
-            ESC
+          <button type="button" onClick={onClose} className="min-h-[36px] border border-white/15 px-2 font-mono text-[12px] text-white/75 hover:text-white">
+            Esc
           </button>
         </div>
 
-        {/* Search Results List */}
-        <div className="max-h-96 overflow-y-auto p-2 space-y-1 divide-y divide-white/5">
+        <ul id="guide-search-results" className="max-h-96 divide-y divide-white/5 overflow-y-auto p-2">
           {filtered.length === 0 ? (
-            <div className="p-8 text-center text-white/40 text-sm font-mono">
-              No matching guide topics found for "{query}"
-            </div>
+            <li className="p-8 text-center text-[15px] text-white/60">No guide topics match &ldquo;{query}&rdquo;.</li>
           ) : (
             filtered.map((item, idx) => {
               const isSelected = idx === selectedIndex;
               return (
-                <button
-                  key={`${item.categoryId}-${item.slug}`}
-                  type="button"
-                  onClick={() => {
-                    onSelectArticle(item.categoryId, item.slug);
-                    onClose();
-                  }}
-                  onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`w-full text-left px-3 py-2.5 rounded flex items-start justify-between gap-3 transition-colors ${
-                    isSelected
-                      ? "bg-[#e2efba]/15 text-white border-l-2 border-[#e2efba]"
-                      : "hover:bg-white/5 text-white/80"
-                  }`}
-                >
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[10px] uppercase text-[#c4b5fd] bg-[#c4b5fd]/10 px-1.5 py-0.5 rounded">
-                        {item.categoryTitle}
+                <li key={`${item.categoryId}-${item.slug}`}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelectArticle(item.categoryId, item.slug);
+                      onClose();
+                    }}
+                    onMouseEnter={() => setSelectedIndex(idx)}
+                    className={`flex w-full items-start justify-between gap-3 px-3 py-3 text-left transition-colors ${
+                      isSelected ? "border-l-2 border-[var(--heading)] bg-[var(--heading)]/[0.12]" : "hover:bg-white/5"
+                    }`}
+                  >
+                    <span className="min-w-0 space-y-1">
+                      <span className="flex items-center gap-2">
+                        <span className="font-mono text-[12px] uppercase text-[#c4b5fd]">{item.categoryTitle}</span>
+                        <span className="truncate text-[15px] text-white">{item.navTitle || item.title}</span>
                       </span>
-                      <span className="font-semibold text-sm text-white truncate">
-                        {item.title}
-                      </span>
-                    </div>
-                    <p className="text-xs text-white/50 truncate">{item.desc}</p>
-                  </div>
-                  <span className="text-[11px] font-mono text-white/40 shrink-0">
-                    {item.readTime}
-                  </span>
-                </button>
+                      <span className="block truncate text-[13px] text-white/60">{item.desc}</span>
+                    </span>
+                    <span className="shrink-0 font-mono text-[12px] text-white/50">{item.readTime}</span>
+                  </button>
+                </li>
               );
             })
           )}
-        </div>
+        </ul>
 
-        {/* Footer info */}
-        <div className="px-4 py-2 bg-[#0c0d0e] border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-white/40">
-          <span>Navigate with ↑ ↓ and Press Enter to select</span>
+        <div className="flex items-center justify-between border-t border-white/10 bg-[#0c0d0e] px-4 py-2 font-mono text-[12px] text-white/55">
+          <span>↑ ↓ to move, Enter to open</span>
           <span>{filtered.length} results</span>
         </div>
       </div>

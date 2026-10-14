@@ -1,6 +1,10 @@
 /**
- * Genesis Hackathon Organizer Guide Data Store
- * Operational playbooks, timelines, and frameworks for the Genesis community.
+ * "How to run a hackathon: a practical guide".
+ *
+ * Section structure adapted from the MLH Hackathon Organiser Guide
+ * (guide.mlh.io); the guide credits it on every page. Read times are
+ * computed from the text below, never typed in (audit C18).
+ * NEEDS_CONFIRMATION: licence terms of the MLH guide for adapted structure.
  */
 
 export const GUIDE_CATEGORIES = [
@@ -11,32 +15,32 @@ export const GUIDE_CATEGORIES = [
     articles: [
       {
         slug: "overview",
-        title: "Overview",
-        desc: "Welcome to the ultimate Hackathon Organizer Guide",
-        readTime: "3 min read",
-        lastUpdated: "August 2026",
+        title: "How to run a hackathon: a practical guide",
+        navTitle: "Overview",
+        desc: "What this guide covers and how to use it",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "A comprehensive manual for organizing world-class hackathons",
-          heroText: "Whether you are hosting a 100-person campus event or a 1,000+ hacker flagship conference, this guide provides proven frameworks, checklists, and operational playbooks to turn your vision into an unforgettable experience.",
+          subtitle: "Planning, funding and running a student hackathon in India",
+          heroText: "Whether you are running a 100-person campus event or a 1,000-person weekend, this guide walks through the timeline, the budget, sponsors, the venue and the day itself, with checklists you can copy.",
           sections: [
             {
               id: "what-is-this-guide",
               title: "What is this guide?",
-              text: "Organizing a hackathon can be daunting. There are dozens of moving pieces: venue security, sponsor relations, catering, hardware labs, judging algorithms, and hacker safety. This guide consolidates years of organizer knowledge into an accessible, step-by-step handbook.",
+              text: "Organising a hackathon has a lot of moving parts: venue access, sponsors, food, hardware, judging and participant safety. This guide puts them in order, step by step, so a first-time team knows what to do and when.",
               callout: {
                 type: "tip",
                 title: "Pro Tip",
-                text: "Bookmark this guide and share it with your co-organizers during your initial kickoff meeting!"
+                text: "Share this guide with your co-organisers at your first planning meeting."
               }
             },
             {
               id: "how-to-use-it",
               title: "How to use this guide",
-              text: "You can read this guide end-to-end if you are planning your very first event, or jump directly to specific modules using the left navigation or Ctrl+K search.",
+              text: "Read it end to end if this is your first event, or jump to a topic from the menu or with Ctrl+K search.",
               checklist: [
-                { id: "step-1", text: "Bookmark the Master Organizer Checklist under Resources", checked: false },
+                { id: "step-1", text: "Read the Hackathon Timeline and pick your event date", checked: false },
                 { id: "step-2", text: "Assign functional team leads (Logistics, Tech, Sponsorship, Marketing)", checked: false },
-                { id: "step-3", text: "Review the Hackathon Timeline (6-month operational calendar)", checked: false }
+                { id: "step-3", text: "Draft a first budget using the Hackathon Budgeting page", checked: false }
               ]
             }
           ]
@@ -45,22 +49,16 @@ export const GUIDE_CATEGORIES = [
       {
         slug: "what-is-a-hackathon",
         title: "What is a Hackathon?",
-        desc: "An introduction to the spirit of invention marathons",
-        readTime: "4 min read",
-        lastUpdated: "August 2026",
+        desc: "What happens at a hackathon and who it is for",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "An invention marathon where passion meets rapid prototyping",
-          heroText: "A hackathon is best described as an 'invention marathon'. Anyone with an interest in technology, design, or problem-solving comes together to learn, build, and share their creations over the course of 24–48 hours in a welcoming atmosphere.",
-          videoEmbed: {
-            title: "Genesis Presents: What is a Hackathon?",
-            url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            caption: "Watch our 3-minute overview video on the hacker mindset."
-          },
+          heroText: "A hackathon is an event where people team up to build something in a fixed time, usually 24 to 48 hours, then show it to judges and each other.",
           sections: [
             {
               id: "the-core-philosophy",
               title: "The Core Philosophy",
-              text: "Hackathons are not about winning prize money or writing production-grade enterprise software. They are about empowering participants to push their creative boundaries, experiment with fresh tech stacks, and bond with like-minded builders."
+              text: "The point is to learn by building: try a new stack, ship a working demo in a weekend, and meet people you would want to build with again. Prizes are a bonus."
             },
             {
               id: "who-attends",
@@ -68,8 +66,8 @@ export const GUIDE_CATEGORIES = [
               text: "You don't need to be a Computer Science major or a veteran developer! Great teams combine programmers, UI/UX designers, hardware tinkerers, project strategists, and domain specialists.",
               callout: {
                 type: "note",
-                title: "Inclusivity First",
-                text: "Over 40% of hackers at Genesis community events are first-time participants. Designing workshops and beginner tracks is crucial for community growth."
+                title: "Plan for first-timers",
+                text: "Many participants at student hackathons are attending their first one. Beginner workshops and a beginner track help them finish something."
               }
             }
           ]
@@ -78,35 +76,16 @@ export const GUIDE_CATEGORIES = [
       {
         slug: "what-is-genesis",
         title: "What is Genesis?",
-        desc: "Empowering the next generation of builders",
-        readTime: "3 min read",
-        lastUpdated: "August 2026",
+        desc: "Who wrote this guide",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Building platforms and support systems for student creators",
-          heroText: "Genesis forms the premier backbone of the student developer ecosystem—supporting hackathons, builder meetups, and thousands of creators across the globe.",
+          subtitle: "Hackathon partnerships in India",
+          heroText: "Genesis connects companies with India's student hackathon and builder community. We curate brand partnerships with independent hackathons and run our own series, Hackers Occupied.",
           sections: [
             {
-              id: "ecosystem-support",
-              title: "Ecosystem Support",
-              text: "We assist organizer teams by providing mentorship, hardware lab kits, domain vouchers, judging software integration, and sponsorship connections."
-            }
-          ]
-        }
-      },
-      {
-        slug: "genesis-hackcon",
-        title: "Genesis Hackcon",
-        desc: "The premier conference for hackathon organizers",
-        readTime: "3 min read",
-        lastUpdated: "August 2026",
-        content: {
-          subtitle: "Connecting organizers, sharing playbooks, and elevating hacker culture",
-          heroText: "Genesis Hackcon is the annual conference for community leaders, student organizers, and hacker advocates. Learn best practices, swap organizing stories, and attend operational workshops.",
-          sections: [
-            {
-              id: "why-attend",
-              title: "Why Attend Hackcon?",
-              text: "Connect with over 300 veteran organizers from top universities and tech communities. Gain insights into sponsor negotiation, conflict resolution, and venue management."
+              id: "how-we-help",
+              title: "How we help organisers",
+              text: "If you run a student hackathon, we can help bring in sponsors. Tell us about your event on the Collaborate page."
             }
           ]
         }
@@ -115,20 +94,19 @@ export const GUIDE_CATEGORIES = [
         slug: "community-values",
         title: "Community Values",
         desc: "Safety, inclusion, and the hacker code of conduct",
-        readTime: "5 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Fostering a safe, welcoming, and empowering environment for all",
-          heroText: "Every Genesis-supported hackathon must strictly enforce a robust Code of Conduct. Harassment-free experiences for everyone regardless of gender, sexual orientation, disability, ethnicity, or background are non-negotiable.",
+          subtitle: "A safe, welcoming event for everyone",
+          heroText: "Publish a code of conduct and enforce it. Everyone should be free from harassment regardless of gender, sexual orientation, disability, ethnicity or background.",
           sections: [
             {
               id: "code-of-conduct",
               title: "Enforcing the Code of Conduct",
-              text: "Ensure your website links clearly to your Code of Conduct, display physical posters at venue check-in, and designate an Incident Response Lead on your team available 24/7.",
+              text: "Link the code of conduct from your website, put posters up at check-in, and name one organiser as the incident lead who can be reached at any hour of the event.",
               callout: {
                 type: "warning",
-                title: "Mandatory Safety Requirement",
-                text: "Always provide an anonymous report form and a direct emergency phone number during the event!"
+                title: "Safety requirement",
+                text: "Provide an anonymous way to report problems and a direct emergency phone number during the event."
               }
             }
           ]
@@ -145,11 +123,10 @@ export const GUIDE_CATEGORIES = [
         slug: "digital-events",
         title: "Digital Events",
         desc: "Hosting virtual and online hackathons",
-        readTime: "5 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Connecting global hackers across time zones",
-          heroText: "Digital hackathons break geographical barriers, allowing hackers worldwide to collaborate online through Discord, video streams, and digital helpdesks.",
+          subtitle: "Running a hackathon online",
+          heroText: "Online hackathons let people join from anywhere. Teams collaborate over chat and video, and submit online.",
           sections: [
             {
               id: "digital-stack",
@@ -159,7 +136,7 @@ export const GUIDE_CATEGORIES = [
             {
               id: "engagement",
               title: "Keeping Digital Engagement High",
-              text: "Virtual fatigue is real! Host frequent 15-minute mini-events (Trivia, Gaming sessions, Quiz nights) and establish active mentor voice channels."
+              text: "Online events lose people fast. Run short 15-minute mini-events (trivia, games, quizzes) and keep mentor voice channels staffed."
             }
           ]
         }
@@ -167,17 +144,16 @@ export const GUIDE_CATEGORIES = [
       {
         slug: "in-person-events",
         title: "In-Person Events",
-        desc: "The magic of 24-48 hour physical gatherings",
-        readTime: "6 min read",
-        lastUpdated: "August 2026",
+        desc: "Running a 24 to 48 hour event at a venue",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Creating immersive, high-energy venue environments",
-          heroText: "There is nothing quite like the electric atmosphere of hundreds of hackers in a single space sharing pizza at 2 AM while shipping software together.",
+          subtitle: "What a venue needs",
+          heroText: "In-person events need more planning than online ones, and they are where teams form and people come back next year.",
           sections: [
             {
               id: "venue-essentials",
               title: "Venue Essentials",
-              text: "Ensure 24/7 building access, reliable gigabit Wi-Fi, 1 outlet per hacker minimum, gender-neutral restrooms, and quiet sleeping areas."
+              text: "Confirm overnight building access, reliable Wi-Fi, at least one power socket per participant, accessible restrooms and a quiet rest area."
             }
           ]
         }
@@ -186,8 +162,7 @@ export const GUIDE_CATEGORIES = [
         slug: "hybrid-events",
         title: "Hybrid Events",
         desc: "Combining physical venues with online participation",
-        readTime: "4 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "The best of both worlds with dual submission tracks",
           heroText: "Hybrid hackathons allow local participants to hack in person while remote participants submit and present virtually.",
@@ -211,18 +186,17 @@ export const GUIDE_CATEGORIES = [
         slug: "hackathon-timeline",
         title: "Hackathon Timeline",
         desc: "The 6-month operational master roadmap",
-        readTime: "8 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "From initial concept to post-event wrapup",
-          heroText: "Planning a successful event requires a structured timeline. Here is the standard 24-week countdown followed by top organizing committees.",
+          heroText: "Work back from your event date. This is a typical six-month plan for a first event.",
           sections: [
             {
               id: "timeline-breakdown",
               title: "Phase-by-Phase Roadmap",
-              text: "Follow this checklist to stay on schedule without last-minute panic.",
+              text: "Tick these off as you go.",
               checklist: [
-                { id: "m6", text: "Month 6: Form organizing core team & set event date goals", checked: false },
+                { id: "m6", text: "Month 6: Form the organising team and pick a date", checked: false },
                 { id: "m5", text: "Month 5: Finalize budget & launch sponsorship prospectus", checked: false },
                 { id: "m4", text: "Month 4: Secure venue contract & launch teaser website", checked: false },
                 { id: "m3", text: "Month 3: Open hacker applications & launch marketing campaign", checked: false },
@@ -238,8 +212,7 @@ export const GUIDE_CATEGORIES = [
         slug: "finding-date-and-purpose",
         title: "Finding the Date & Purpose",
         desc: "Avoiding scheduling conflicts and defining your theme",
-        readTime: "4 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "Strategic scheduling for maximum attendance",
           heroText: "Choosing the wrong date can destroy attendance. Cross-check university exam schedules, major holidays, and competing regional tech events before locking in your date.",
@@ -255,16 +228,15 @@ export const GUIDE_CATEGORIES = [
       {
         slug: "build-leadership-team",
         title: "Build Your Leadership Team",
-        desc: "Structuring functional organizing committees",
-        readTime: "5 min read",
-        lastUpdated: "August 2026",
+        desc: "Structuring functional organising committees",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Empowering team leads with clear ownership",
-          heroText: "A great hackathon is built by a tight-knit team. Divide responsibilities into clear domains with single points of contact (DRI).",
+          subtitle: "Give each lead clear ownership",
+          heroText: "Split the work into clear areas, each with one person responsible.",
           sections: [
             {
               id: "core-roles",
-              title: "Core Organizing Domains",
+              title: "Core organising areas",
               text: "1. Lead Director (Overall vision & sync)\n2. Logistics Director (Venue, catering, AV, security)\n3. Sponsorship Lead (Funding, partner relations)\n4. Tech & Web Lead (Platform, registration system, Wi-Fi)\n5. Marketing & Design Lead (Socials, branding, swag)\n6. Hacker Experience Lead (Mentors, mini-events, judging)"
             }
           ]
@@ -274,20 +246,19 @@ export const GUIDE_CATEGORIES = [
         slug: "locking-down-a-venue",
         title: "Locking Down a Venue",
         desc: "Facility requirements, contracts, and power setup",
-        readTime: "6 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Finding and securing the perfect home for your event",
-          heroText: "Your venue sets the tone for the entire event. Ensure your space has 24/7 access approvals, HVAC ventilation, and robust electrical infrastructure.",
+          subtitle: "Finding and booking a venue",
+          heroText: "Check overnight access approvals, ventilation and power before you sign anything.",
           sections: [
             {
               id: "power-network",
               title: "Power & Gigabit Networking",
-              text: "Never assume a normal classroom can power 50 laptops per outlet bank! Work with venue facility engineers to deploy distribution boxes (distro boxes) and multi-circuit drop cables.",
+              text: "A normal classroom cannot power 50 laptops from one wall. Work with the venue's facilities team on distribution boards and cables across several circuits.",
               callout: {
                 type: "important",
                 title: "Power Rule of Thumb",
-                text: "Calculate 150W per hacker. A 300-person hackathon needs approximately 45,000 Watts of continuous power distribution!"
+                text: "Plan for about 150 W per participant. A 300-person hackathon needs roughly 45 kW of continuous power."
               }
             }
           ]
@@ -297,11 +268,10 @@ export const GUIDE_CATEGORIES = [
         slug: "hackathon-budgeting",
         title: "Hackathon Budgeting",
         desc: "Financial planning, line items, and reserve funds",
-        readTime: "7 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Balancing revenue and expenses with complete transparency",
-          heroText: "A healthy budget ensures you never run out of food, swag, or emergency reserves.",
+          subtitle: "Planning income and costs",
+          heroText: "A budget agreed early stops you running out of food or money on the day. These are typical shares; adjust them for your event.",
           sections: [
             {
               id: "budget-breakdown",
@@ -322,10 +292,9 @@ export const GUIDE_CATEGORIES = [
         slug: "sponsorship-overview",
         title: "Sponsorship Overview",
         desc: "Fundraising strategy and tier structures",
-        readTime: "6 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Connecting corporate partners with top developer talent",
+          subtitle: "Why companies sponsor hackathons",
           heroText: "Sponsors fund your event to recruit top talent, drive developer adoption of their APIs/SDKs, and build brand affinity among student creators.",
           sections: [
             {
@@ -339,12 +308,11 @@ export const GUIDE_CATEGORIES = [
       {
         slug: "prospectus-creation",
         title: "Prospectus Creation",
-        desc: "Designing a high-converting sponsorship deck",
-        readTime: "5 min read",
-        lastUpdated: "August 2026",
+        desc: "What to put in a sponsorship deck",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "Crafting a clean, compelling 3-page proposal",
-          heroText: "Your sponsorship deck is your first impression. Keep it crisp, visually stunning, and focused on past metrics.",
+          heroText: "Keep the deck short and specific: who comes, what a sponsor gets, and what it costs.",
           sections: [
             {
               id: "deck-structure",
@@ -358,10 +326,9 @@ export const GUIDE_CATEGORIES = [
         slug: "pitching-sponsors",
         title: "Pitching Sponsors",
         desc: "Outreach campaigns, follow-ups, and closing contracts",
-        readTime: "6 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Turning cold emails into long-term community partnerships",
+          subtitle: "Outreach, follow-ups and closing",
           heroText: "Start your outreach 4 to 6 months in advance. Target University Recruiter and Developer Advocate titles on LinkedIn.",
           sections: [
             {
@@ -383,11 +350,10 @@ export const GUIDE_CATEGORIES = [
         slug: "accessible-design",
         title: "Making an Accessible Design",
         desc: "WCAG compliance, mobile UX, and high contrast",
-        readTime: "4 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "Designing for every hacker on all screen sizes",
-          heroText: "Your website is the front door of your event. Ensure proper color contrast, ARIA tags, screen reader support, and keyboard navigability.",
+          heroText: "Your website is often the first thing participants and sponsors see. Check colour contrast, labels, screen reader support and keyboard navigation.",
           sections: [
             {
               id: "accessibility-rules",
@@ -400,12 +366,11 @@ export const GUIDE_CATEGORIES = [
       {
         slug: "placeholder-website",
         title: "Placeholder Website",
-        desc: "Launching a high-converting teaser page early",
-        readTime: "3 min read",
-        lastUpdated: "August 2026",
+        desc: "Put up a simple page early",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "Capturing early emails before registrations open",
-          heroText: "Do not wait until your full site is ready! Launch a sleek single-page teaser with an email waitlist form 5 months before your event.",
+          heroText: "Do not wait for the full site. Put up a one-page teaser with an email sign-up about five months before the event.",
           sections: [
             {
               id: "teaser-elements",
@@ -419,8 +384,7 @@ export const GUIDE_CATEGORIES = [
         slug: "main-website",
         title: "Main Website",
         desc: "Full schedule, FAQs, sponsor grid, and application flow",
-        readTime: "5 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "The central hub for hackers, mentors, and sponsors",
           heroText: "Your main website should answer every question a participant might ask within 2 clicks.",
@@ -437,16 +401,15 @@ export const GUIDE_CATEGORIES = [
         slug: "marketing-your-event",
         title: "Marketing Your Event",
         desc: "Social campaigns, campus ambassadors, and posters",
-        readTime: "5 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "Spreading the word across tech communities",
-          heroText: "Combine online social momentum with physical campus ambassador programs for maximum application numbers.",
+          heroText: "Combine social posts with campus ambassadors at nearby colleges.",
           sections: [
             {
               id: "ambassador-program",
               title: "Campus Ambassador Playbook",
-              text: "Recruit student leads at neighboring universities to distribute flyers, post on class Discord servers, and host info sessions."
+              text: "Recruit student leads at neighbouring colleges to share flyers, post on class Discord servers, and host info sessions."
             }
           ]
         }
@@ -462,11 +425,10 @@ export const GUIDE_CATEGORIES = [
         slug: "managing-registrations",
         title: "Managing Registrations",
         desc: "Applications, ticketing, RSVPs, and check-in flows",
-        readTime: "5 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "Streamlining application reviews and attendance confirmation",
-          heroText: "Over-book registrations by 20-30% to account for standard drop-off rates on event day.",
+          heroText: "Free events usually see a share of registered people not turn up, so accept more registrations than you have seats. Track your own drop-off rate to set the margin.",
           sections: [
             {
               id: "rsvp-strategy",
@@ -480,11 +442,10 @@ export const GUIDE_CATEGORIES = [
         slug: "judging-and-submissions",
         title: "Judging & Submissions",
         desc: "Expo style judging, scoring rubrics, and platforms",
-        readTime: "7 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "Fair, transparent, and efficient project evaluations",
-          heroText: "Expo-style (science fair) judging is superior to stage presentations for large hackathons—allowing every team to demo their project multiple times to judges.",
+          heroText: "For large hackathons, expo-style judging (teams demo at their tables) lets every team show their project to several judges, which stage presentations cannot.",
           sections: [
             {
               id: "rubric-standards",
@@ -497,9 +458,8 @@ export const GUIDE_CATEGORIES = [
       {
         slug: "hackathon-scheduling",
         title: "Hackathon Scheduling",
-        desc: "Crafting a high-energy 24-36 hour agenda",
-        readTime: "5 min read",
-        lastUpdated: "August 2026",
+        desc: "Planning a 24 to 36 hour agenda",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "Balancing hacking time, workshops, and rest",
           heroText: "Ensure long uninterrupted hacking blocks while weaving in fun mini-events and technical workshops.",
@@ -515,17 +475,16 @@ export const GUIDE_CATEGORIES = [
       {
         slug: "mentorship",
         title: "Mentorship",
-        desc: "Onboarding and organizing technical mentors",
-        readTime: "4 min read",
-        lastUpdated: "August 2026",
+        desc: "Onboarding and organising technical mentors",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Empowering hackers with expert technical guidance",
-          heroText: "Mentors are the unsung heroes of hackathons. Recruit senior engineers, alumni, and sponsor advocates to help stuck hackers debug issues.",
+          subtitle: "Getting teams unstuck",
+          heroText: "Recruit experienced engineers, alumni and sponsor developer advocates to help teams when they are stuck.",
           sections: [
             {
               id: "mentor-queue",
               title: "Help Desk Ticketing",
-              text: "Use a dedicated Discord ticket bot or web app where hackers specify their table number, tech stack, and issue description for instant mentor dispatch."
+              text: "Use a ticket queue (a Discord bot or a simple web form) where teams give their table number, stack and problem, so mentors can pick up requests in order."
             }
           ]
         }
@@ -534,11 +493,10 @@ export const GUIDE_CATEGORIES = [
         slug: "day-of-logistics",
         title: "Day-of Logistics & Hacker Experience",
         desc: "On-site operations, meals, swag, and emergency response",
-        readTime: "6 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Keeping the energy high and operations flawless",
-          heroText: "Detail your run-of-show minute by minute. Assign walkie-talkies or dedicated Slack emergency channels to core staff.",
+          subtitle: "Running the day itself",
+          heroText: "Write the run of show minute by minute, and give core staff walkie-talkies or a dedicated emergency chat channel.",
           sections: [
             {
               id: "hacker-delight",
@@ -552,11 +510,10 @@ export const GUIDE_CATEGORIES = [
         slug: "after-the-event",
         title: "After the Event",
         desc: "Post-mortems, metrics, winner follow-ups, and thank-yous",
-        readTime: "4 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "Closing the loop and building community momentum",
-          heroText: "Your work is not done when the closing ceremony ends! Send thank-you notes to sponsors, process prize payouts promptly, and host a team retrospective.",
+          heroText: "After the closing ceremony, thank sponsors, pay out prizes promptly and hold a team retrospective.",
           sections: [
             {
               id: "post-event-checklist",
@@ -577,8 +534,7 @@ export const GUIDE_CATEGORIES = [
         slug: "hardware-intro",
         title: "Hardware Introduction",
         desc: "Why host hardware & IoT hackathons?",
-        readTime: "5 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "Combining physical electronics with software intelligence",
           heroText: "Hardware hackathons allow participants to build physical gadgets, robotics, wearables, and smart home IoT systems using microcontrollers and sensors.",
@@ -595,10 +551,9 @@ export const GUIDE_CATEGORIES = [
         slug: "hardware-labs-resources",
         title: "Hardware Labs & Setup",
         desc: "Equipment inventories, component check-out, and safety",
-        readTime: "7 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Setting up a safe and fully equipped hardware lab",
+          subtitle: "Setting up a safe hardware lab",
           heroText: "Provide a diverse inventory of microcontrollers (Arduino, Raspberry Pi, ESP32), sensor kits, wire strippers, breadboards, and soldering equipment.",
           sections: [
             {
@@ -608,7 +563,7 @@ export const GUIDE_CATEGORIES = [
               callout: {
                 type: "warning",
                 title: "Safety First",
-                text: "Assign dedicated, trained hardware lab managers to monitor soldering stations at all times!"
+                text: "Have a trained lab manager supervise soldering stations at all times."
               }
             }
           ]
@@ -618,30 +573,22 @@ export const GUIDE_CATEGORIES = [
   },
   {
     id: "organizer-resources",
-    title: "Organizer Resources",
+    title: "Organiser Resources",
     icon: "Tool",
     articles: [
       {
         slug: "template-links",
-        title: "Template Links",
-        desc: "Downloadable budgets, decks, and run-of-show docs",
-        readTime: "3 min read",
-        lastUpdated: "August 2026",
+        title: "Templates to make",
+        desc: "The planning documents every organising team needs",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Battle-tested templates ready for your event",
-          heroText: "Save hundreds of hours with ready-to-use Google Docs, Sheets, and Canva templates.",
+          subtitle: "Five documents to set up before you start",
+          heroText: "Most teams end up building the same few documents. Set them up early and share them with every lead.",
           sections: [
             {
               id: "resources-grid",
-              title: "Free Downloadable Assets",
-              text: "Click any resource link below to make a copy in your Google Drive:",
-              resourceLinks: [
-                { title: "Master Hackathon Budget Spreadsheet (Google Sheets)", url: "#" },
-                { title: "Sponsorship Prospectus Deck Template (Canva/PPT)", url: "#" },
-                { title: "Run-of-Show & AV Master Schedule (Google Docs)", url: "#" },
-                { title: "Day-of Volunteer Shift Roster (Google Sheets)", url: "#" },
-                { title: "Emergency Incident Log & Report Form", url: "#" }
-              ]
+              title: "What to set up",
+              text: "- Budget sheet: every income and cost line, with a reserve\n- Sponsorship deck: audience, packages and contact\n- Run of show: the event minute by minute, with owners\n- Volunteer roster: shifts and responsibilities\n- Incident log: what happened, when, and what was done"
             }
           ]
         }
@@ -650,15 +597,14 @@ export const GUIDE_CATEGORIES = [
         slug: "host-exciting-mini-events",
         title: "Host Exciting Mini-Events",
         desc: "Cup stacking, Slides Karaoke, Esports, and trivia ideas",
-        readTime: "4 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Unforgettable side activities to recharge hackers",
+          subtitle: "Short breaks that keep people going",
           heroText: "Mini-events break up intense coding sessions, relieve stress, and create fun memories.",
           sections: [
             {
               id: "popular-activities",
-              title: "Top 5 Crowd Favorites",
+              title: "Ideas that work",
               text: "1. Cup Stacking Challenge (Fastest team to build a 50-cup pyramid)\n2. Slides Karaoke (Hackers present random 5-slide decks they've never seen before)\n3. Midnight Cupcake Decorating\n4. Smash Bros / Valorant Tournament\n5. Tech Trivia & Meme Contest"
             }
           ]
@@ -667,17 +613,16 @@ export const GUIDE_CATEGORIES = [
       {
         slug: "software-for-hackathons",
         title: "Software for Hackathons",
-        desc: "The recommended organizing tech stack",
-        readTime: "4 min read",
-        lastUpdated: "August 2026",
+        desc: "The recommended organising tech stack",
+        lastUpdated: "October 2026",
         content: {
           subtitle: "Tools that automate your operations",
-          heroText: "Leverage software to automate ticketing, team matching, Discord moderation, and submission management.",
+          heroText: "Use software for ticketing, team matching, chat moderation and submissions.",
           sections: [
             {
               id: "stack-recommendations",
               title: "Recommended Tools",
-              text: "- Project Submissions: Devpost / HackCulture\n- Community & Chat: Discord / Slack\n- Registration & Ticketing: Genesis Portal / Luma / Eventbrite\n- Mentorship: HelpQueue / Discord Ticket Bot\n- Live Stream: OBS Studio + YouTube Live"
+              text: "- Project Submissions: Devpost / HackCulture\n- Community & Chat: Discord / Slack\n- Registration & Ticketing: Luma / Eventbrite\n- Mentorship: HelpQueue / Discord Ticket Bot\n- Live Stream: OBS Studio + YouTube Live"
             }
           ]
         }
@@ -686,16 +631,15 @@ export const GUIDE_CATEGORIES = [
         slug: "contributors",
         title: "Contributors",
         desc: "Acknowledgements and community maintainers",
-        readTime: "2 min read",
-        lastUpdated: "August 2026",
+        lastUpdated: "October 2026",
         content: {
-          subtitle: "Built by organizers, for organizers",
-          heroText: "This guide is maintained by the Genesis India Organizers Network and community contributors across the world.",
+          subtitle: "Who maintains this guide",
+          heroText: "This guide is maintained by the Genesis team. Its structure is adapted from the MLH Hackathon Organiser Guide (guide.mlh.io).",
           sections: [
             {
               id: "contribute-back",
               title: "Want to contribute?",
-              text: "Have a playbook, template, or operational guide to add? Submit a pull request on GitHub or contact the Genesis core team!"
+              text: "Have a playbook or checklist to add, or spotted a mistake? Email partner@genesishacks.com."
             }
           ]
         }
@@ -703,6 +647,25 @@ export const GUIDE_CATEGORIES = [
     ]
   }
 ];
+
+/** Read time from the words actually on the page, at about 200 words a minute. */
+function computeReadTime(article) {
+  const c = article.content || {};
+  const parts = [article.title, article.desc, c.subtitle, c.heroText];
+  (c.sections || []).forEach((sec) => {
+    parts.push(sec.title, sec.text);
+    if (sec.callout) parts.push(sec.callout.title, sec.callout.text);
+    (sec.checklist || []).forEach((item) => parts.push(item.text));
+  });
+  const words = parts.filter(Boolean).join(" ").split(/\s+/).filter(Boolean).length;
+  return `${Math.max(1, Math.round(words / 200))} min read`;
+}
+
+GUIDE_CATEGORIES.forEach((cat) => {
+  cat.articles.forEach((art) => {
+    art.readTime = computeReadTime(art);
+  });
+});
 
 /** Helper to flatten all articles for global search */
 export const ALL_GUIDE_ARTICLES = GUIDE_CATEGORIES.flatMap((cat) =>

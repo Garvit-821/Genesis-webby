@@ -11,8 +11,9 @@
     --border: rgba(255, 255, 255, 0.14);
     --border-strong: rgba(255, 255, 255, 0.28);
     --text: #f5f0ff;
-    --text-dim: rgba(245, 240, 255, 0.72);
-    --text-faint: rgba(245, 240, 255, 0.48);
+    --text-dim: rgba(245, 240, 255, 0.76);
+    /* 0.58 keeps small labels above 4.5:1 on #181818 (audit A01) */
+    --text-faint: rgba(245, 240, 255, 0.58);
     --brand: #c4b5fd;
     --heading: #e2efba;
     /* Stable viewport height — set by lockStableViewportHeight() */
@@ -155,6 +156,9 @@ body {
     font-weight: 400;
     letter-spacing: 0.005em;
     text-transform: uppercase;
+}
+/* Default display colour at zero specificity, so text-* utilities win. */
+:where(.font-display) {
     color: var(--heading);
 }
 
@@ -168,8 +172,8 @@ body {
 
 .overline {
     font-family: var(--font-display);
-    font-size: 11px;
-    letter-spacing: 0.24em;
+    font-size: 12px;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     color: var(--text-dim);
 }
@@ -230,6 +234,13 @@ body {
 }
 .input-line:focus {
     border-bottom-color: var(--text);
+}
+.input-line:focus-visible {
+    outline: 2px solid var(--heading);
+    outline-offset: 4px;
+}
+.input-line[aria-invalid="true"] {
+    border-bottom-color: #ff8a8a;
 }
 .input-line::placeholder {
     color: var(--text-faint);
@@ -409,6 +420,168 @@ body {
     z-index: 5;
 }
 
+/* ─── Accessibility ─────────────────────────────────── */
+/* Visible 2px focus ring everywhere (audit A05) */
+:focus-visible {
+    outline: 2px solid var(--heading);
+    outline-offset: 3px;
+}
+
+.skip-link {
+    position: fixed;
+    left: 12px;
+    top: -80px;
+    z-index: 3000;
+    padding: 12px 18px;
+    background: var(--heading);
+    color: #181818;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    text-decoration: none;
+    transition: top 200ms ease;
+}
+.skip-link:focus {
+    top: 12px;
+}
+
+/* Form error text that passes 4.5:1 on dark surfaces (audit A01) */
+.field-error {
+    color: #ff9b9b;
+    font-size: 14px;
+}
+
+/* ─── Type helpers ──────────────────────────────────── */
+.text-outline {
+    color: transparent;
+    -webkit-text-stroke: 1px var(--heading);
+}
+
+.pixel-corners {
+    --px: 6px;
+    clip-path: polygon(
+        0 var(--px), var(--px) var(--px), var(--px) 0,
+        calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px),
+        100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%,
+        var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px))
+    );
+}
+
+/* ─── Route transition: pixel dissolve ──────────────── */
+.route-pixel {
+    background: #0e0e10;
+    animation: route-pixel-out 520ms cubic-bezier(0.7, 0, 0.3, 1) both;
+}
+.route-pixel:nth-child(7n) {
+    background: #1d1f16;
+}
+.route-pixels__label {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--heading);
+    font-size: clamp(28px, 6vw, 96px);
+    line-height: 1;
+    white-space: nowrap;
+    text-transform: uppercase;
+    animation: route-label-out 640ms cubic-bezier(0.7, 0, 0.3, 1) both;
+}
+@keyframes route-pixel-out {
+    0% { opacity: 1; transform: scale(1.04); }
+    100% { opacity: 0; transform: scale(0.15); }
+}
+@keyframes route-label-out {
+    0% { opacity: 1; letter-spacing: 0.02em; }
+    60% { opacity: 1; }
+    100% { opacity: 0; letter-spacing: 0.3em; }
+}
+
+/* ─── Footer ────────────────────────────────────────── */
+.site-footer {
+    min-height: var(--app-height);
+}
+.footer-mail__line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 2px;
+    background: var(--heading);
+    transform-origin: left center;
+    transform: scaleX(0.18);
+    transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.footer-mail:hover .footer-mail__line,
+.footer-mail:focus-visible .footer-mail__line {
+    transform: scaleX(1);
+}
+.footer-wordmark-stage {
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+    width: 100%;
+    height: min(78vw, 720px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    isolation: isolate;
+    margin-top: 3rem;
+}
+.footer-blackhole {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.95;
+}
+.footer-wordmark {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-display);
+    font-size: clamp(48px, 19vw, 300px);
+    color: var(--heading);
+    letter-spacing: -0.01em;
+    line-height: 0.78;
+    white-space: nowrap;
+    text-align: center;
+    width: 100%;
+    text-transform: uppercase;
+    padding-bottom: 0.06em;
+}
+.footer-bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 3rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    gap: 1rem;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
+    background: linear-gradient(to top, var(--bg) 60%, transparent);
+}
+@media (max-width: 640px) {
+    .footer-wordmark-stage {
+        height: min(82vw, 420px);
+    }
+    .footer-bottom-bar {
+        padding: 0.75rem 1.25rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .footer-blackhole {
+        display: none;
+    }
+}
+
 /* Hide branding overlay */
 #emergent-badge, [id*="emergent-badge"], [class*="emergent-badge"] {
     display: none !important;
@@ -426,4 +599,145 @@ body.rgb-overclock {
   0% { filter: hue-rotate(0deg); }
   50% { filter: hue-rotate(180deg); }
   100% { filter: hue-rotate(360deg); }
+}
+
+/* Hero scroll cue */
+.scroll-cue {
+    animation: scroll-cue 1.8s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+}
+@keyframes scroll-cue {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(200%); }
+}
+
+/* ─── Home: ink buttons on the lime Delhi band ──────── */
+.btn-cinema.btn-cinema--ink {
+    background: #181818;
+    color: var(--heading);
+}
+.btn-cinema.btn-cinema--ink:hover {
+    background: #2b2b2b;
+    color: #ffffff;
+}
+.btn-cinema.btn-cinema--ink::after {
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 2px,
+        rgba(226, 239, 186, 0.14) 2px,
+        rgba(226, 239, 186, 0.14) 3px
+    );
+    mix-blend-mode: normal;
+}
+.btn-ghost.btn-ghost--ink {
+    color: #181818;
+    border-color: rgba(24, 24, 24, 0.55);
+}
+.btn-ghost.btn-ghost--ink:hover {
+    color: #181818;
+    border-color: #181818;
+    background: rgba(24, 24, 24, 0.06);
+}
+
+/* ─── Home: proof rows sweep lime on hover ──────────── */
+.proof-row__fill {
+    position: absolute;
+    inset: 0;
+    background: var(--heading);
+    transform: scaleY(0);
+    transform-origin: bottom center;
+    transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.proof-row:hover .proof-row__fill {
+    transform: scaleY(1);
+}
+@media (hover: none) {
+    .proof-row:hover .proof-row__fill {
+        transform: scaleY(0);
+    }
+}
+
+/* ─── Home: pixel glyph on sponsor cards ────────────── */
+.pixel-glyph-cell {
+    display: block;
+    transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.group:hover .pixel-glyph-cell {
+    transform: scale(0.55) rotate(45deg);
+}
+
+/* ─── Home: event index rows ────────────────────────── */
+.event-row::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: var(--heading);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.event-row:hover::after,
+.event-row:focus-visible::after {
+    transform: scaleX(1);
+}
+
+/* ─── Delhi page: signal rings over Delhi NCR ───────── */
+.delhi-signal__ring {
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(226, 239, 186, 0.55);
+    animation: delhi-ring 3.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    transform: scale(0.05);
+    opacity: 0;
+}
+.delhi-signal__core {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0 -9px;
+    background: var(--heading);
+    box-shadow: 0 0 40px rgba(226, 239, 186, 0.7);
+    animation: delhi-core 1.8s steps(2, end) infinite;
+}
+.delhi-signal__label {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + 24px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(226, 239, 186, 0.8);
+}
+@keyframes delhi-ring {
+    0% { transform: scale(0.05); opacity: 0; }
+    15% { opacity: 1; }
+    100% { transform: scale(1); opacity: 0; }
+}
+@keyframes delhi-core {
+    0% { opacity: 1; }
+    100% { opacity: 0.35; }
+}
+
+/* ─── Delhi page: track cards fill lime on hover ────── */
+.track-card__fill {
+    position: absolute;
+    inset: 0;
+    background: var(--heading);
+    clip-path: circle(0% at 100% 0%);
+    transition: clip-path 800ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.track-card:hover .track-card__fill {
+    clip-path: circle(150% at 100% 0%);
+}
+@media (hover: none) {
+    .track-card:hover .track-card__fill {
+        clip-path: circle(0% at 100% 0%);
+    }
 }

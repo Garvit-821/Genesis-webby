@@ -1,20 +1,26 @@
 /**
- * Hackers Occupied Pune - Official Event Schedule Data (22–23 August 2026)
- * Vishwakarma Institute of Technology (VIT), Pune
+ * Hackers Occupied Pune: schedule as it ran on 22–23 August 2026 at
+ * Vishwakarma Institute of Technology (VIT), Pune. The event is over;
+ * nothing here should read as open for registration (audit C01).
+ *
+ * Counts shown on the site are computed from PUNE_SCHEDULE_DATA below,
+ * never typed by hand (audit C11).
+ * NEEDS_CONFIRMATION: prize pool figure and final team count.
  */
 
 export const EVENT_DETAILS = {
-  title: "HACKERS OCCUPIED PUNE",
-  tagline: "sudo takeover --city pune",
-  subtitle: "Genesis Flagship Creator-First Hackathon",
+  title: "Hackers Occupied Pune",
   location: "Vishwakarma Institute of Technology (VIT), Pune",
-  venueShort: "VIT, Pune",
+  venueShort: "VIT Pune",
+  format: "On-site hackathon",
   startDate: "2026-08-22T11:00:00+05:30",
   endDate: "2026-08-23T15:00:00+05:30",
   hackingStart: "2026-08-22T15:00:00+05:30",
   submissionDeadline: "2026-08-23T10:00:00+05:30",
+  tracks: ["Agentic AI", "Web3 and blockchain"],
   prizePool: "₹1,50,000+",
-  lumaUrl: "https://hackculture.io/hackathons/hackers-occupied-pune",
+  /** Third-party listing of the event, kept as a record (not a sign-up link). */
+  listingUrl: "https://hackculture.io/hackathons/hackers-occupied-pune",
 };
 
 export const ACTIVITY_CATEGORIES = {
@@ -121,7 +127,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Genesis Introduction & Keynote",
     type: "Opening Ceremony",
     participantImpact: "All participants",
-    notes: "Introduction to Genesis platform, ecosystem vision, and tracks",
+    notes: "Introduction to Genesis and the two tracks",
     milestone: false,
   },
   {
@@ -134,7 +140,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Partner & Sponsor Introduction",
     type: "Opening Ceremony",
     participantImpact: "All participants",
-    notes: "Keynotes and acknowledgements from ecosystem partners",
+    notes: "Keynotes and thanks to partners and sponsors",
     milestone: false,
   },
   {
@@ -147,7 +153,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Logitech Activities & Gear Announcement",
     type: "Opening Ceremony",
     participantImpact: "All participants",
-    notes: "Detailed announcement of Logitech Activity 1, 2 and 3 and prize gear",
+    notes: "Logitech activities 1, 2 and 3 and their prizes announced",
     milestone: false,
   },
   {
@@ -160,7 +166,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Hackathon Briefing & Rules",
     type: "Opening Ceremony",
     participantImpact: "All participants",
-    notes: "Final instructions and rules before hacking period begins at 3:00 PM (Opening Ceremony concludes)",
+    notes: "Final instructions and rules before hacking begins at 3:00 PM. The opening ceremony ends here",
     milestone: false,
   },
   {
@@ -212,7 +218,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Creator Challenge Release",
     type: "Creator Activity",
     participantImpact: "Creators",
-    notes: "10–15 creator challenges released; submission deadline is Aug 23 at 11:00 AM",
+    notes: "10 to 15 creator challenges released; submissions due 23 Aug at 11:00 AM",
     milestone: true,
   },
   {
@@ -225,7 +231,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Cornitos Snacks + Red Bull",
     type: "Sponsor Break",
     participantImpact: "All teams",
-    notes: "Snacks and Red Bull delivered/distributed at team tables",
+    notes: "Snacks and Red Bull served at team tables",
     milestone: false,
   },
   {
@@ -251,7 +257,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Mentoring Round 1",
     type: "Mentoring",
     participantImpact: "All teams",
-    notes: "Two mentors visit teams; approximately 5 minutes per team",
+    notes: "Two mentors visit every team, about 5 minutes each",
     milestone: true,
   },
   {
@@ -277,7 +283,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Dinner",
     type: "Food Break",
     participantImpact: "All teams",
-    notes: "Dinner delivered/distributed at team tables",
+    notes: "Dinner served at team tables",
     milestone: false,
   },
   {
@@ -303,15 +309,15 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Mentoring Round 2",
     type: "Mentoring",
     participantImpact: "All teams",
-    notes: "Two mentors visit teams; approximately 5 minutes per team",
+    notes: "Two mentors visit every team, about 5 minutes each",
     milestone: true,
   },
 
   // Day 2: 23 Aug 2026
   {
     id: 22,
-    date: "23 Aug 2026",
-    dayNum: 2,
+    date: "22 Aug 2026",
+    dayNum: 1,
     startTime: "23:00",
     endTime: "00:00",
     duration: "1 hr",
@@ -331,7 +337,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Midnight Snacks",
     type: "Food Break",
     participantImpact: "All teams",
-    notes: "Snacks delivered/distributed at team tables",
+    notes: "Snacks served at team tables",
     milestone: false,
   },
   {
@@ -357,7 +363,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Logitech Activity 1",
     type: "Sponsor Activity",
     participantImpact: "1 participant per team",
-    notes: "One representative from each team participates; remaining members continue hacking",
+    notes: "One person from each team takes part while the rest keep building",
     milestone: true,
   },
   {
@@ -383,7 +389,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Logitech Activity 2",
     type: "Sponsor Activity",
     participantImpact: "1 participant per team",
-    notes: "One representative from each team participates; remaining members continue hacking",
+    notes: "One person from each team takes part while the rest keep building",
     milestone: true,
   },
   {
@@ -409,7 +415,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Logitech Activity 3",
     type: "Sponsor Activity",
     participantImpact: "1 participant per team",
-    notes: "One representative from each team participates; remaining members continue hacking",
+    notes: "One person from each team takes part while the rest keep building",
     milestone: true,
   },
   {
@@ -432,7 +438,7 @@ export const PUNE_SCHEDULE_DATA = [
     startTime: "07:00",
     endTime: "08:00",
     duration: "1 hr",
-    activity: "Hacking Period 9 (Final Stretch)",
+    activity: "Hacking Period 10 (Final Stretch)",
     type: "Hacking",
     participantImpact: "All teams",
     notes: "Final development stretch before morning break",
@@ -448,7 +454,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Morning Tea + Breakfast",
     type: "Food Break",
     participantImpact: "All teams",
-    notes: "Breakfast and morning tea delivered/distributed at team tables",
+    notes: "Breakfast and morning tea served at team tables",
     milestone: false,
   },
   {
@@ -458,10 +464,10 @@ export const PUNE_SCHEDULE_DATA = [
     startTime: "08:30",
     endTime: "08:45",
     duration: "15 min",
-    activity: "Last Final Mentoring Session",
+    activity: "Mentoring Round 3",
     type: "Mentoring",
     participantImpact: "All teams",
-    notes: "Final mentoring session (Round 3); 5 minutes per team for final guidance",
+    notes: "Mentoring round 3: 5 minutes per team for final guidance",
     milestone: true,
   },
   {
@@ -487,7 +493,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Final Submission Deadline",
     type: "Competition",
     participantImpact: "All teams",
-    notes: "All project code and links must be submitted (10:00 AM strict deadline)",
+    notes: "All project code and links due at 10:00 AM sharp",
     milestone: true,
   },
   {
@@ -499,7 +505,7 @@ export const PUNE_SCHEDULE_DATA = [
     duration: "30 min",
     activity: "Submission Verification",
     type: "Competition",
-    participantImpact: "Organizers / Judges",
+    participantImpact: "Organisers and judges",
     notes: "Submission status and repo link verification",
     milestone: false,
   },
@@ -512,8 +518,8 @@ export const PUNE_SCHEDULE_DATA = [
     duration: "2 hr",
     activity: "Judging",
     type: "Competition",
-    participantImpact: "All 25 teams",
-    notes: "Judges evaluate teams at their respective locations; judging lasts until 12:30 PM",
+    participantImpact: "All teams",
+    notes: "Judges visit each team at its desk until 12:30 PM",
     milestone: true,
   },
   {
@@ -538,8 +544,8 @@ export const PUNE_SCHEDULE_DATA = [
     duration: "45 min",
     activity: "Score Consolidation & Break",
     type: "Competition",
-    participantImpact: "Organizers / Judges",
-    notes: "Judging score compilation, shortlisting, and participant break",
+    participantImpact: "Organisers and judges",
+    notes: "Scores compiled while participants take a break",
     milestone: false,
   },
   {
@@ -591,7 +597,7 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Prize Distribution & Final Photography",
     type: "Closing Ceremony",
     participantImpact: "Winners & Participants",
-    notes: "Prizes presented & official group photo session (Closing Ceremony concludes at 1:45 PM)",
+    notes: "Prizes presented and the official group photo. The closing ceremony ends at 1:45 PM",
     milestone: true,
   },
   {
@@ -601,10 +607,10 @@ export const PUNE_SCHEDULE_DATA = [
     startTime: "13:45",
     endTime: "15:00",
     duration: "1 hr 15 min",
-    activity: "SalesForce Speaker Session",
+    activity: "Salesforce Speaker Session",
     type: "Session",
-    participantImpact: "All 25 teams",
-    notes: "Special session featuring SalesForce engineers & tech leaders (Optional session for interested participants; e-certificates provided)",
+    participantImpact: "All teams",
+    notes: "Optional session with Salesforce engineers; e-certificates for those who attended",
     milestone: true,
   },
   {
@@ -617,7 +623,23 @@ export const PUNE_SCHEDULE_DATA = [
     activity: "Event Concludes",
     type: "Closing Ceremony",
     participantImpact: "All participants",
-    notes: "Hackers Occupied Pune officially concludes at 3:00 PM",
+    notes: "Hackers Occupied Pune ends at 3:00 PM",
     milestone: true,
   },
 ];
+
+// ─── Facts computed from the schedule (audit C11) ───────────────────────────
+const byType = (type) => PUNE_SCHEDULE_DATA.filter((item) => item.type === type);
+
+export const PUNE_FACTS = {
+  activityCount: PUNE_SCHEDULE_DATA.length,
+  mentoringRounds: byType("Mentoring").length,
+  logitechActivities: PUNE_SCHEDULE_DATA.filter((item) => /^Logitech Activity \d/.test(item.activity)).length,
+  hackingHours: Math.round(
+    (new Date(EVENT_DETAILS.submissionDeadline) - new Date(EVENT_DETAILS.hackingStart)) / 36e5,
+  ),
+  eventHours: Math.round(
+    (new Date(EVENT_DETAILS.endDate) - new Date(EVENT_DETAILS.startDate)) / 36e5,
+  ),
+  days: new Set(PUNE_SCHEDULE_DATA.map((item) => item.dayNum)).size,
+};

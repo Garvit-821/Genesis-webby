@@ -1,189 +1,169 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Link } from "react-router-dom";
-import InnerPage from "../shared/InnerPage";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { PageShell, PageHero } from "@widgets/layout";
+import { BRAND, DELHI, PUNE, SERIES } from "@shared/config/site";
+import { EASE_OUT, Magnetic, Reveal, ScrollHighlight } from "@shared/motion";
+import StatStrip from "@pages/partner/components/StatStrip";
+import ProofList from "@pages/partner/components/ProofList";
 
-const METRICS = [
-  { value: "5,000+", label: "Active Builders & Hackers", desc: "Developers, hardware creators & designers across India." },
-  { value: "$150K+", label: "Grants & Prize Pools", desc: "Non-dilutive cash prizes, cloud credits & incubation pools." },
-  { value: "40+", label: "Hackathons & Micro-Builds", desc: "High-density overnight builds, workshops & technical sprints." },
-  { value: "12+", label: "Funded Startups Incubated", desc: "Early-stage teams formed at Genesis that raised seed capital." },
-];
-
-const PILLARS = [
+/** What Genesis does, by audience. Facts only; the origin story is still to be written. */
+const WHAT_WE_DO = [
   {
-    num: "01",
-    title: "High-Intensity Sprints",
-    subtitle: "Real Hardware & Production APIs",
-    description: "Our 36-to-48 hour hackathons strip away shallow pitch deck fluff. Teams build real software, compile hardware prototypes, and test live under high-stakes conditions.",
-    badge: "Production Code"
+    who: "For companies",
+    title: "Sponsorships that fit",
+    line: "We find hackathons that match your audience, city and budget, then set up the sponsorship: tracks, judging, booths or workshops.",
+    link: { to: "/partner", label: "Sponsor an event" },
   },
   {
-    num: "02",
-    title: "Direct Mentor Access",
-    subtitle: "Senior Engineers & Founders",
-    description: "No generic advice. Participants work directly alongside staff engineers, smart contract auditors, and seed founders who troubleshoot bugs in real time.",
-    badge: "1-on-1 Guidance"
+    who: "For organisers",
+    title: "Partners for your event",
+    line: "Student teams running independent hackathons get sponsors and support through Genesis. You keep running your event.",
+    link: { to: "/collaborate", label: "Collaborate with us" },
   },
   {
-    num: "03",
-    title: "Venture & Seed Pathways",
-    subtitle: "From Prototype to Startup",
-    description: "Winning projects don't end when the stage lights turn off. We connect breakout teams with venture capital partners, accelerator entry, and ecosystem grants.",
-    badge: "Capital & Scale"
-  }
+    who: "Our own series",
+    title: SERIES.name,
+    line: `${PUNE.name} ran on ${PUNE.when} at ${PUNE.shortWhere}. ${DELHI.name} is next: ${DELHI.where}, ${DELHI.when}.`,
+    link: { to: DELHI.path, label: `See ${DELHI.name} ${DELHI.edition}` },
+  },
 ];
 
-const TESTIMONIALS = [
-  {
-    quote: "Genesis isn't just another hackathon. The mentor density and midnight energy helped us turn our hack into a YC-backed startup within 6 months.",
-    author: "Aarav Sharma",
-    role: "Founder, Synthetix AI (Genesis '24 Winner)"
-  },
-  {
-    quote: "The focus on real execution over vanity slide decks is refreshing. You meet builders who ship production code in 36 hours straight.",
-    author: "Neha Kulkarni",
-    role: "Staff Engineer & Genesis Mentor"
-  }
-];
+function WhatCard({ item, index }) {
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 1, delay: index * 0.12, ease: EASE_OUT }}
+      className="group relative flex min-h-[22rem] flex-col justify-between border border-[var(--border)] bg-white/[0.02] p-6 transition-colors duration-500 hover:bg-white/[0.04] md:p-8"
+    >
+      <div>
+        <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)]">{item.who}</p>
+        <h3 className="mt-6 font-display text-[clamp(1.9rem,3vw,2.6rem)] leading-[0.95] text-[var(--heading)]">{item.title}</h3>
+        <p className="mt-5 max-w-[36ch] text-base leading-relaxed text-[var(--text-dim)]">{item.line}</p>
+      </div>
+      <Link to={item.link.to} className="mt-8 inline-flex min-h-[44px] w-fit items-center gap-2 font-mono text-[12px] uppercase tracking-[0.16em] text-[var(--text)] hover:text-[var(--heading)]">
+        {item.link.label}
+        <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+      </Link>
+    </motion.article>
+  );
+}
+
+/** Pune done, Delhi next: a scroll-scrubbed hand-off between the two editions. */
+function SeriesBand() {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"], layoutEffect: false });
+  const puneX = useTransform(scrollYProgress, [0, 1], ["0%", "-18%"]);
+  const delhiX = useTransform(scrollYProgress, [0, 1], ["-18%", "0%"]);
+
+  return (
+    <section ref={ref} aria-labelledby="series-title" className="relative overflow-hidden border-t border-[var(--border)] py-24 md:py-32">
+      <div className="mx-auto max-w-[90rem] px-5 md:px-12">
+        <div className="flex items-center gap-3">
+          <span className="block h-2 w-2 bg-[var(--heading)]" aria-hidden />
+          <span className="overline">Our own series</span>
+        </div>
+        <h2 id="series-title" className="mt-6 font-display text-[clamp(2.5rem,6vw,5.5rem)] leading-[0.9] text-[var(--heading)]">
+          {SERIES.name}
+        </h2>
+      </div>
+
+      <div className="mt-14 space-y-2" aria-hidden>
+        <motion.div style={{ x: puneX }} className="whitespace-nowrap font-display text-[16vw] leading-[0.85] text-outline opacity-60">
+          Pune · Pune · Pune · Pune
+        </motion.div>
+        <motion.div style={{ x: delhiX }} className="whitespace-nowrap font-display text-[16vw] leading-[0.85] text-[var(--heading)]">
+          Delhi · Delhi · Delhi · Delhi
+        </motion.div>
+      </div>
+
+      <div className="mx-auto mt-14 grid max-w-[90rem] gap-6 px-5 md:grid-cols-2 md:px-12">
+        <Reveal className="border border-[var(--border)] p-6 md:p-8">
+          <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)]">Concluded</p>
+          <h3 className="mt-4 font-display text-3xl text-[var(--heading)]">{PUNE.name}</h3>
+          <p className="mt-3 text-base text-[var(--text-dim)]">
+            {PUNE.when} at {PUNE.where}.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
+            <Link to={PUNE.path} className="link-draw inline-flex min-h-[44px] items-center text-[var(--text)]">Recap and schedule</Link>
+            <Link to="/gallery" className="link-draw inline-flex min-h-[44px] items-center text-[var(--text)]">Photos</Link>
+          </div>
+        </Reveal>
+        <Reveal delay={0.1} className="relative overflow-hidden border border-[var(--heading)]/60 bg-[var(--heading)] p-6 text-[#181818] md:p-8">
+          <p className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.18em]">
+            <span className="h-2 w-2 animate-pulse bg-[#181818]" aria-hidden />
+            Upcoming
+          </p>
+          <h3 className="mt-4 font-display text-3xl">
+            {DELHI.name} {DELHI.edition}
+          </h3>
+          <p className="mt-3 text-base text-[#181818]/80">
+            {DELHI.where} · {DELHI.when} · {DELHI.teams} teams · {DELHI.tracks.length} tracks
+          </p>
+          <Link to={DELHI.path} className="mt-6 inline-flex min-h-[44px] items-center gap-2 border-b border-[#181818] font-mono text-[12px] uppercase tracking-[0.16em]">
+            Upcoming events <span aria-hidden>→</span>
+          </Link>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
 
 export default function AboutPage() {
   return (
-    <InnerPage
-      eyebrow="ABOUT GENESIS // ORIGIN & ECOSYSTEM"
-      title="Pioneering the Next Generation of Builders."
-      cta={
-        <Link to="/values" className="btn-cinema">
-          Explore Our Values →
-        </Link>
-      }
-    >
-      {/* Intro Editorial Copy */}
-      <div className="space-y-6 text-lg sm:text-xl text-[var(--text)] font-light leading-relaxed max-w-[65ch]">
-        <p className="text-xl sm:text-2xl text-[var(--heading)] font-normal leading-snug">
-          Genesis is India&apos;s premier builder community — a high-conviction collective of developers, designers, hardware hackers, and founders dedicated to turning bold ideas into shipping software.
-        </p>
-        <p className="text-[var(--text-dim)]">
-          We bring together high-density technical talent into intense, collaborative environments: overnight builds, hands-on architectural workshops, and raw developer gatherings where real work gets done.
-        </p>
-      </div>
+    <PageShell>
+      <PageHero eyebrow="About" title="About Genesis" lines={["About", "Genesis."]} intro={BRAND.description}>
+        <StatStrip className="mt-16" />
+      </PageHero>
 
-      {/* Metrics Counter Grid */}
-      <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-8 border-y border-white/10">
-        {METRICS.map((m, i) => (
-          <div key={i} className="p-5 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-md flex flex-col justify-between">
-            <div className="font-display text-4xl sm:text-5xl text-[var(--heading)] tracking-tight font-bold">
-              {m.value}
-            </div>
-            <div className="mt-3">
-              <div className="font-mono text-xs uppercase tracking-wider text-white/80 font-medium">{m.label}</div>
-              <div className="mt-1 font-mono text-[11px] text-white/40">{m.desc}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Story & Philosophy Section */}
-      <div className="mt-16 space-y-10">
-        <div className="flex items-center gap-3">
-          <span className="h-px w-10 bg-[var(--heading)]/40" />
-          <span className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--heading)]">
-            Our Origin & Philosophy
-          </span>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.02] space-y-4">
-            <h3 className="font-display text-2xl text-[var(--heading)] uppercase tracking-tight">
-              The Genesis Spark
-            </h3>
-            <p className="text-sm md:text-base text-[var(--text-dim)] leading-relaxed font-light">
-              Genesis was created out of frustration with shallow corporate pitch competitions where winning meant having the slickest PowerPoint deck rather than the best codebase.
-            </p>
-            <p className="text-sm md:text-base text-[var(--text-dim)] leading-relaxed font-light">
-              We set out to create a sanctuary for true builders—an unfiltered ecosystem where late-night commit logs, hardware wiring, and elegant algorithms are celebrated above all else.
-            </p>
-          </div>
-
-          <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.02] space-y-4">
-            <h3 className="font-display text-2xl text-[var(--heading)] uppercase tracking-tight">
-              High-Density Culture
-            </h3>
-            <p className="text-sm md:text-base text-[var(--text-dim)] leading-relaxed font-light">
-              Great things happen when you put 300 passionate engineers in a room with unlimited coffee, high-speed fiber internet, and zero corporate distractions.
-            </p>
-            <p className="text-sm md:text-base text-[var(--text-dim)] leading-relaxed font-light">
-              From early-stage project feedback to finding your future co-founder at 3 AM, Genesis cultivates lifelong friendships and high-conviction ventures.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Ecosystem Pillars Section */}
-      <div className="mt-16 space-y-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="h-px w-10 bg-[var(--heading)]/40" />
-            <span className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--heading)]">
-              Core Program Pillars
-            </span>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {PILLARS.map((p) => (
-            <div
-              key={p.num}
-              className="group relative p-7 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/25 transition-all duration-300 flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="font-mono text-xs text-[var(--brand)]">{`${p.num} // ${p.badge}`}</span>
-                </div>
-                <h4 className="font-display text-2xl text-white uppercase tracking-tight mb-1">
-                  {p.title}
-                </h4>
-                <p className="font-mono text-xs text-white/40 mb-3">{p.subtitle}</p>
-                <p className="text-sm text-white/60 font-light leading-relaxed">
-                  {p.description}
-                </p>
+      <section aria-labelledby="what-title" className="border-t border-[var(--border)] px-5 py-24 md:px-12 md:py-32">
+        <div className="mx-auto max-w-[90rem]">
+          <div className="grid gap-8 md:grid-cols-12">
+            <div className="md:col-span-4">
+              <div className="flex items-center gap-3">
+                <span className="block h-2 w-2 bg-[var(--heading)]" aria-hidden />
+                <span className="overline">What we do</span>
               </div>
+              <h2 id="what-title" className="mt-6 font-display text-[clamp(2.5rem,5vw,4.5rem)] leading-[0.9] text-[var(--heading)]">
+                What we do
+              </h2>
             </div>
-          ))}
+            <ScrollHighlight
+              className="text-[clamp(1.4rem,2.6vw,2.4rem)] leading-[1.25] tracking-[-0.01em] text-[var(--text)] md:col-span-8"
+              text="Companies want to meet student developers. Student hackathons need sponsors. Genesis sits between the two, and runs its own hackathons too."
+            />
+          </div>
+          <div className="mt-16 grid gap-4 md:grid-cols-3">
+            {WHAT_WE_DO.map((item, i) => (
+              <WhatCard key={item.who} item={item} index={i} />
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Testimonials */}
-      <div className="mt-16 space-y-6 pt-10 border-t border-white/10">
-        <div className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--heading)]">
-          Words From Our Community
-        </div>
-        <div className="grid md:grid-cols-2 gap-6">
-          {TESTIMONIALS.map((t, idx) => (
-            <div key={idx} className="p-6 rounded-2xl border border-white/10 bg-white/[0.02] italic text-sm md:text-base text-white/70">
-              &quot;{t.quote}&quot;
-              <div className="mt-4 not-italic font-mono text-xs text-white/90 font-medium">
-                — {t.author} <span className="text-white/40">({t.role})</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <ProofList
+        intro="Hackathons where Genesis was Event Partner. Each was run by its own organising team."
+      />
 
-      {/* Footer Navigation CTA Links */}
-      <div className="mt-12 flex flex-wrap gap-4 items-center font-mono text-xs uppercase tracking-wider text-white/60">
-        <span>Explore More:</span>
-        <Link to="/events" className="text-[var(--heading)] hover:underline">
-          Upcoming Events →
-        </Link>
-        <span>·</span>
-        <Link to="/gallery" className="text-[var(--heading)] hover:underline">
-          Photo Archive →
-        </Link>
-        <span>·</span>
-        <Link to="/team" className="text-[var(--heading)] hover:underline">
-          Meet The Team →
-        </Link>
-      </div>
-    </InnerPage>
+      <SeriesBand />
+
+      <section aria-labelledby="more-title" className="border-t border-[var(--border)] px-5 py-20 md:px-12">
+        <div className="mx-auto flex max-w-[90rem] flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <h2 id="more-title" className="font-display text-[clamp(2rem,4vw,3.5rem)] leading-[0.95] text-[var(--heading)]">
+            More about Genesis
+          </h2>
+          <nav aria-label="About Genesis" className="flex flex-wrap gap-3">
+            <Magnetic strength={0.2}>
+              <Link to="/team" className="btn-cinema">Meet the team</Link>
+            </Magnetic>
+            <Link to="/values" className="btn-ghost">How we run events</Link>
+            <Link to="/events" className="btn-ghost">Events archive</Link>
+            <Link to="/gallery" className="btn-ghost">Gallery</Link>
+          </nav>
+        </div>
+      </section>
+    </PageShell>
   );
 }

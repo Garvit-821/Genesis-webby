@@ -1,124 +1,41 @@
 import { LANDING } from "@shared/constants/testIds";
+import { DELHI, PUNE } from "@shared/config/site";
 
 /**
- * Mega-menu destinations are standalone routes only — never home-section scrolls.
+ * Header menus. Every item is a real link (`to` for routes, `href` for
+ * external), so crawlers can follow them and people can open them in a
+ * new tab (audit L07).
  */
 export const NAV_MENUS = [
-  {
-    id: "about",
-    label: "About",
-    testid: LANDING.navAbout,
-    layout: "split-3-2",
-    columns: [
-      {
-        category: "Overview/",
-        items: [
-          {
-            title: "About Genesis",
-            desc: "Who we are and what we build",
-            kind: "route",
-            target: "/about",
-            testid: LANDING.navAbout,
-          },
-          {
-            title: "Our Values",
-            desc: "What we stand for as a community",
-            kind: "route",
-            target: "/values",
-            testid: LANDING.navLoop,
-          },
-          {
-            title: "Meet the Team",
-            desc: "The builders behind Genesis",
-            kind: "route",
-            target: "/team",
-            testid: LANDING.navTeam,
-          },
-          {
-            title: "Events",
-            desc: "Meetups, hackathons, and gatherings",
-            kind: "route",
-            target: "/events",
-            testid: LANDING.navEvents,
-          },
-          {
-            title: "Organizer Guide",
-            desc: "Master playbooks, budgets & checklists",
-            kind: "route",
-            target: "/guide",
-          },
-        ],
-      },
-      {
-        category: "Connect/",
-        major: true,
-        items: [
-          {
-            title: "Contact Us",
-            desc: "Reach the Genesis team",
-            kind: "route",
-            target: "/contact",
-            testid: LANDING.navContact,
-          },
-          {
-            title: "Partner With Us",
-            desc: "Sponsorships and campus chapters",
-            kind: "route",
-            target: "/partner",
-          },
-          {
-            title: "Collaborate With Us",
-            desc: "Co-host, list your event, judge or mentor",
-            kind: "route",
-            target: "/collaborate",
-          },
-          {
-            title: "Work at Genesis",
-            desc: "Join the crew — roles and collabs",
-            kind: "route",
-            target: "/careers",
-          },
-        ],
-      },
-    ],
-  },
   {
     id: "events",
     label: "Events",
     testid: LANDING.navEvents,
+    feature: {
+      badge: "Upcoming",
+      title: `${DELHI.name} ${DELHI.edition}`,
+      desc: `${DELHI.where} · ${DELHI.when}. 100 teams, six tracks.`,
+      to: DELHI.path,
+      cta: "See the event",
+    },
     columns: [
       {
-        category: "Upcoming/",
+        category: "Hackers Occupied/",
         items: [
           {
-            title: "Hackers Occupied Pune",
-            desc: "Live Countdown Timer & 43-Slot Event Schedule",
-            kind: "route",
-            target: "/events/hackers-occupied-pune",
+            title: `${DELHI.name} ${DELHI.edition}`,
+            desc: "Upcoming. Sponsor it or register interest",
+            to: DELHI.path,
           },
           {
-            title: "Headline event",
-            desc: "Next offline gathering — RSVP open",
-            kind: "route",
-            target: "/events",
-          },
-        ],
-      },
-      {
-        category: "Programme/",
-        items: [
-          {
-            title: "Full events",
-            desc: "Browse the complete programme",
-            kind: "route",
-            target: "/events",
-            testid: LANDING.navEvents,
+            title: `${PUNE.name} 2026`,
+            desc: "Recap, schedule and photos",
+            to: PUNE.path,
           },
           {
-            title: "Past editions",
-            desc: "Hackathons and meetups archive",
-            kind: "route",
-            target: "/events",
+            title: "Pune certificates",
+            desc: "For registered Pune participants",
+            to: PUNE.certificatePath,
           },
         ],
       },
@@ -126,160 +43,15 @@ export const NAV_MENUS = [
         category: "Archive/",
         items: [
           {
-            title: "Meetups & hackathons",
-            desc: "Beyond the Code, Supernova, and more",
-            kind: "route",
-            target: "/events",
-          },
-        ],
-      },
-      {
-        category: "Join/",
-        items: [
-          {
-            title: "Register Now",
-            desc: "Register for Hackers Occupied Pune on HackCulture",
-            external: true,
-            target: "https://hackculture.io/hackathons/hackers-occupied-pune",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "gallery",
-    label: "Gallery",
-    testid: LANDING.navGallery,
-    columns: [
-      {
-        category: "Capture/",
-        items: [
-          {
-            title: "Infinite field",
-            desc: "Immersive WebGL gallery",
-            kind: "route",
-            target: "/gallery",
-          },
-        ],
-      },
-      {
-        category: "Moments/",
-        items: [
-          {
-            title: "Community frames",
-            desc: "Stills from meetups and builds",
-            kind: "route",
-            target: "/gallery",
-          },
-        ],
-      },
-      {
-        category: "On site/",
-        items: [
-          {
-            title: "Event stills",
-            desc: "Photos from the programme",
-            kind: "route",
-            target: "/gallery",
-          },
-        ],
-      },
-      {
-        category: "Share/",
-        items: [
-          {
-            title: "Contact",
-            desc: "Send photos or collab ideas",
-            kind: "route",
-            target: "/contact",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "community",
-    label: "Community",
-    testid: LANDING.navContact,
-    columns: [
-      {
-        category: "Talk/",
-        items: [
-          {
-            title: "Contact Us",
-            desc: "Message the Genesis crew",
-            kind: "route",
-            target: "/contact",
-            testid: LANDING.navContact,
-          },
-          {
-            title: "Partner With Us",
-            desc: "Sponsorships and campus chapters",
-            kind: "route",
-            target: "/partner",
-          },
-          {
-            title: "Collaborate With Us",
-            desc: "Co-host, list your event, judge or mentor",
-            kind: "route",
-            target: "/collaborate",
-          },
-        ],
-      },
-      {
-        category: "Gather/",
-        items: [
-          {
-            title: "Events",
-            desc: "Show up IRL — hackathons & meetups",
-            kind: "route",
-            target: "/events",
-          },
-          {
-            title: "Work at Genesis",
-            desc: "Join our team & builder collective",
-            kind: "route",
-            target: "/careers",
-          },
-        ],
-      },
-      {
-        category: "Story/",
-        items: [
-          {
-            title: "About",
-            desc: "Builders across India",
-            kind: "route",
-            target: "/about",
-          },
-          {
-            title: "Our Values",
-            desc: "How we keep momentum",
-            kind: "route",
-            target: "/values",
-          },
-          {
-            title: "Team Directory",
-            desc: "Meet the organizers & leads",
-            kind: "route",
-            target: "/team",
-          },
-        ],
-      },
-      {
-        category: "Media & Resources/",
-        items: [
-          {
-            title: "Organizer Guide",
-            desc: "Hackathon playbooks & toolkits",
-            kind: "route",
-            target: "/guide",
+            title: "Events archive",
+            desc: "Every event Genesis has run or partnered on",
+            to: "/events",
           },
           {
             title: "Gallery",
-            desc: "See the community in motion",
-            kind: "route",
-            target: "/gallery",
+            desc: "Photos from Hackers Occupied Pune",
+            to: "/gallery",
+            testid: LANDING.navGallery,
           },
         ],
       },
@@ -289,44 +61,56 @@ export const NAV_MENUS = [
     id: "partner",
     label: "Partner",
     testid: "nav-partner",
+    feature: {
+      badge: "For sponsors",
+      title: "Sponsor a hackathon",
+      desc: "Tell us your goal, budget and timeline. We shortlist events that fit.",
+      to: "/partner",
+      cta: "Start here",
+    },
     columns: [
       {
-        category: "Collaborate/",
+        category: "Work with us/",
         items: [
           {
-            title: "Collaborate With Us",
-            desc: "Co-host, list your event, judge or mentor",
-            kind: "route",
-            target: "/collaborate",
+            title: "Sponsor an event",
+            desc: "Hackers Occupied Delhi or independent hackathons",
+            to: "/partner",
           },
           {
-            title: "Partner With Us",
-            desc: "Sponsorships and campus chapters",
-            kind: "route",
-            target: "/partner",
+            title: "Co-host, judge or mentor",
+            desc: "Run a track, list your event, judge or mentor",
+            to: "/collaborate",
+          },
+          {
+            title: "Contact",
+            desc: "Email, phone or the form",
+            to: "/contact",
+            testid: LANDING.navContact,
           },
         ],
       },
+    ],
+  },
+  {
+    id: "about",
+    label: "About",
+    testid: LANDING.navAbout,
+    feature: null,
+    columns: [
       {
-        category: "Join Us/",
+        category: "Genesis/",
         items: [
-          {
-            title: "Work With Us",
-            desc: "Apply to join team or contribute",
-            kind: "route",
-            target: "/careers",
-          },
+          { title: "About Genesis", desc: "What we do and for whom", to: "/about" },
+          { title: "How we run events", desc: "The rules we hold ourselves to", to: "/values", testid: LANDING.navLoop },
+          { title: "Team", desc: "The people who run Genesis", to: "/team", testid: LANDING.navTeam },
         ],
       },
       {
-        category: "Reach Out/",
+        category: "Resources/",
         items: [
-          {
-            title: "Contact Us",
-            desc: "Direct messages and support",
-            kind: "route",
-            target: "/contact",
-          },
+          { title: "Organiser guide", desc: "How to run a student hackathon", to: "/guide" },
+          { title: "Join the crew", desc: "Help run events across India", to: "/careers" },
         ],
       },
     ],

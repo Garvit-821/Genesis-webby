@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const LOGO_URL = "/images/logo.png";
+const LOGO_URL = "/images/logo-mark.webp";
 const SEEN_KEY = "genesis_hacks_intro_seen";
 // How long the logo holds before the curtains split open.
 const HOLD_MS = 850;
@@ -84,6 +84,8 @@ export default function Intro({ onDone }) {
                         <motion.img
                             src={LOGO_URL}
                             alt=""
+                            width="112"
+                            height="112"
                             className="h-20 w-20 md:h-28 md:w-28"
                             initial={{ opacity: 0, scale: 0.85 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -95,7 +97,15 @@ export default function Intro({ onDone }) {
                             transition={{ delay: 0.12, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                             className="mt-5 font-display text-3xl tracking-tight text-[var(--heading)] md:text-5xl"
                         >
-                            Genesis
+                            Genesis Hacks
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.3, duration: 0.4 }}
+                            className="mt-3 font-mono text-[12px] uppercase tracking-[0.2em] text-[var(--text-dim)]"
+                        >
+                            Next up · Hackers Occupied Delhi 2027
                         </motion.div>
                         <div className="mt-6 h-px w-40 overflow-hidden bg-white/10">
                             <motion.div

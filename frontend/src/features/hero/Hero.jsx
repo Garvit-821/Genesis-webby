@@ -24,7 +24,7 @@ const GRIDULAR_LETTER = {
   "hackathons.": 4,
 };
 
-const HEADLINE = ["Reach India's", "student builders", "at hackathons."];
+const HEADLINE = ["Reach India's student builders", "at hackathons."];
 
 function renderChar(ch, ci, word) {
   return (
@@ -141,106 +141,98 @@ export default function Hero({ ready = true }) {
       ref={ref}
       onPointerMove={onPointerMove}
       aria-labelledby="hero-title"
-      className="relative flex min-h-[var(--app-height)] items-end overflow-hidden pb-12 pt-44 md:pb-16 lg:pt-48"
+      className="relative flex min-h-[var(--app-height)] flex-col overflow-hidden pt-36 md:pt-40 lg:pt-44"
     >
       <motion.div style={{ y: gridY }} aria-hidden className="hero-grid absolute inset-0 z-0 opacity-[0.16]" />
       <motion.div aria-hidden className="absolute inset-0 z-0" style={{ background: spotlight }} />
       <div
         aria-hidden
-        className="pointer-events-none absolute right-[-10%] top-[10%] z-0 hidden h-[80vh] w-[60vw] lg:block"
+        className="pointer-events-none absolute bottom-[-10%] left-1/2 z-0 hidden h-[80vh] w-[70vw] -translate-x-1/2 lg:block"
         style={{
           background:
-            "radial-gradient(closest-side, hsl(285 85% 60% / 0.22), hsl(258 90% 66% / 0.08) 55%, transparent 75%)",
+            "radial-gradient(closest-side, hsl(285 85% 60% / 0.24), hsl(258 90% 66% / 0.08) 55%, transparent 75%)",
         }}
       />
 
-      {/* Mascot sits beside the headline, never behind it (audit V02). */}
+      {/* Mascot: centred, rising from the bottom edge, below the headline. */}
       {showModel ? (
-        <motion.div style={{ y: modelY }} className="absolute bottom-0 right-[-6%] top-0 z-[2] hidden w-[54%] lg:block">
-          <ErrorBoundary compact title="3D hero unavailable." fallback={() => null}>
-            <Suspense fallback={null}>
-              <HeroCanvas className="absolute inset-0" entryDelayMs={300} />
-            </Suspense>
-          </ErrorBoundary>
-        </motion.div>
+        // Outer div centres; inner motion div owns the scroll transform.
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] hidden h-[64vh] justify-center lg:flex xl:h-[74vh]">
+          <motion.div style={{ y: modelY }} className="relative h-full w-[min(1100px,100%)]">
+            <ErrorBoundary compact title="3D hero unavailable." fallback={() => null}>
+              <Suspense fallback={null}>
+                <HeroCanvas className="absolute inset-0" entryDelayMs={300} />
+              </Suspense>
+            </ErrorBoundary>
+          </motion.div>
+        </div>
       ) : null}
 
-      <div className="relative z-[3] mx-auto w-full max-w-[90rem] px-5 md:px-10">
-        <motion.div style={{ y: titleY, opacity: titleOpacity }} className="lg:max-w-[64%]">
-          <div className="flex items-center gap-3">
-            <span className="block h-2 w-2 bg-[var(--heading)]" aria-hidden />
-            <ScrambleText
-              text="Hackathon partnerships · India"
-              className="overline"
-              delay={200}
-              active={ready}
-            />
-          </div>
-
-          <SplitText
-            as="h1"
-            id="hero-title"
-            lines={HEADLINE}
-            trigger="mount"
+      {/* Headline, centred above the mascot's head */}
+      <motion.div
+        style={{ y: titleY, opacity: titleOpacity }}
+        className="relative z-[3] mx-auto w-full max-w-[90rem] px-5 text-center md:px-10"
+      >
+        <div className="flex items-center justify-center gap-3">
+          <span className="block h-2 w-2 bg-[var(--heading)]" aria-hidden />
+          <ScrambleText
+            text="Hackathon partnerships · India"
+            className="overline"
+            delay={200}
             active={ready}
-            delay={0.35}
-            stagger={0.09}
-            duration={1.2}
-            renderChar={renderChar}
-            className="mt-6 font-display text-[clamp(2.4rem,5.4vw,6.6rem)] leading-[0.9] tracking-[-0.01em] text-[var(--heading)]"
           />
+        </div>
+        <SplitText
+          as="h1"
+          id="hero-title"
+          lines={HEADLINE}
+          trigger="mount"
+          active={ready}
+          delay={0.35}
+          stagger={0.08}
+          duration={1.2}
+          renderChar={renderChar}
+          className="mt-5 font-display text-[clamp(2.3rem,4.7vw,5.4rem)] leading-[0.92] tracking-[-0.01em] text-[var(--heading)]"
+        />
+      </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={go({ opacity: 1, y: 0 })}
-            transition={{ duration: 0.9, delay: 0.9, ease: EASE_OUT }}
-            className="mt-8 max-w-[52ch] text-lg leading-relaxed text-[var(--text-dim)] md:text-xl"
-          >
+      <div className="flex-1" />
+
+      {/* Corners: story + CTAs left, next event right. The middle stays the mascot's. */}
+      <div className="relative z-[3] mx-auto mt-12 grid w-full max-w-[90rem] gap-10 px-5 pb-10 md:px-10 md:pb-14 lg:mt-0 lg:grid-cols-12 lg:items-end">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={go({ opacity: 1, y: 0 })}
+          transition={{ duration: 0.9, delay: 0.9, ease: EASE_OUT }}
+          className="lg:col-span-4"
+        >
+          <p className="max-w-[40ch] text-base leading-relaxed text-[var(--text-dim)] md:text-lg">
             {BRAND.description}
-          </motion.p>
-
-          <motion.dl
-            initial={{ opacity: 0 }}
-            animate={go({ opacity: 1 })}
-            transition={{ duration: 0.9, delay: 1.05 }}
-            className="mt-8 flex flex-wrap gap-x-10 gap-y-4"
-          >
-            <div>
-              <dt className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)]">Events</dt>
-              <dd className="mt-1 font-display text-4xl text-white md:text-5xl">
-                <CountUp value={STATS.events} suffix="+" duration={2.2} />
-              </dd>
-            </div>
-            <div>
-              <dt className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)]">Attendees</dt>
-              <dd className="mt-1 font-display text-4xl text-white md:text-5xl">
-                <CountUp value={STATS.attendees} duration={2.4} />
-              </dd>
-            </div>
-            <div>
-              <dt className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)]">Women builders</dt>
-              <dd className="mt-1 font-display text-4xl text-white md:text-5xl">
-                <CountUp value={35} suffix="%" duration={2} />
-              </dd>
-            </div>
-          </motion.dl>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={go({ opacity: 1, y: 0 })}
-            transition={{ duration: 0.8, delay: 1.15, ease: EASE_OUT }}
-            className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center"
-          >
+          </p>
+          <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
+            {[
+              ["Events", STATS.events, "+"],
+              ["Attendees", STATS.attendees, ""],
+              ["Women", 35, "%"],
+            ].map(([label, value, suffix]) => (
+              <div key={label}>
+                <dt className="font-mono text-[12px] uppercase tracking-[0.18em] text-[var(--text-faint)]">{label}</dt>
+                <dd className="mt-1 font-display text-3xl text-white md:text-4xl">
+                  <CountUp value={value} suffix={suffix} duration={2.2} />
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-start xl:flex-row">
             <Magnetic strength={0.3}>
               <Link
                 to="/partner"
                 data-testid={LANDING.heroCtaPrimary}
                 data-cursor
                 data-cursor-label="Partner"
-                className="btn-cinema w-full justify-center sm:w-auto"
+                className="btn-cinema w-full justify-center whitespace-nowrap sm:w-auto"
               >
-                Partner with Genesis
-                <span aria-hidden>→</span>
+                Partner with Genesis <span aria-hidden>→</span>
               </Link>
             </Magnetic>
             <Link
@@ -248,18 +240,18 @@ export default function Hero({ ready = true }) {
               data-testid={LANDING.heroCtaSecondary}
               data-cursor
               data-cursor-label="Delhi"
-              className="btn-ghost w-full justify-center sm:w-auto"
+              className="btn-ghost w-full justify-center whitespace-nowrap sm:w-auto xl:hidden"
             >
               Hackers Occupied Delhi {DELHI.edition}
             </Link>
-          </motion.div>
+          </div>
         </motion.div>
 
-        <div className="mt-12 lg:absolute lg:bottom-16 lg:right-10 lg:mt-0">
+        <div className="lg:hidden xl:col-span-3 xl:col-start-10 xl:block xl:justify-self-end">
           <div className="relative">
             <span
               aria-hidden
-              className="pointer-events-none absolute -top-12 left-6 hidden -rotate-6 text-[2.1rem] leading-none text-[hsl(285_85%_82%)] lg:block"
+              className="pointer-events-none absolute -top-11 left-4 hidden -rotate-6 text-[2rem] leading-none text-[hsl(285_85%_82%)] xl:block"
               style={{ fontFamily: '"Leirtag Aquelli", cursive' }}
             >
               next stop, Delhi
@@ -268,19 +260,6 @@ export default function Hero({ ready = true }) {
           </div>
         </div>
       </div>
-
-      <motion.a
-        href="#sponsors"
-        initial={{ opacity: 0 }}
-        animate={go({ opacity: 1 })}
-        transition={{ delay: 1.6, duration: 0.8 }}
-        className="absolute bottom-6 left-1/2 z-[3] hidden -translate-x-1/2 flex-col items-center gap-2 font-mono text-[12px] uppercase tracking-[0.2em] text-[var(--text-faint)] hover:text-white lg:flex"
-      >
-        Scroll
-        <span className="relative block h-10 w-px overflow-hidden bg-white/15">
-          <span className="scroll-cue absolute inset-x-0 top-0 h-1/2 bg-[var(--heading)]" />
-        </span>
-      </motion.a>
     </section>
   );
 }

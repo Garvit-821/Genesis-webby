@@ -741,3 +741,23 @@ body.rgb-overclock {
         clip-path: circle(0% at 100% 0%);
     }
 }
+
+/* ─── Hero: kinetic headline ────────────────────────── */
+.kinetic-char {
+    transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1), color 250ms ease;
+    will-change: transform;
+}
+/* Pointer lens: letters under it flip to the Gridular pixel face. */
+.kinetic-char[data-lens="on"] {
+    font-family: var(--font-display) !important;
+    color: #ffffff;
+}
+.hero-roller {
+    color: var(--brand);
+    -webkit-text-stroke: 0 transparent;
+    transition: color 400ms ease, -webkit-text-stroke-color 400ms ease;
+}
+.kinetic-headline:hover .hero-roller {
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--brand);
+}

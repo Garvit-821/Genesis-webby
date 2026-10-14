@@ -6,31 +6,11 @@ import { useSectionScroll } from "@shared/hooks/useSectionScroll";
 import ErrorBoundary from "@shared/ui/ErrorBoundary";
 import CountUp from "@shared/ui/CountUp";
 import { BRAND, DELHI, STATS } from "@shared/config/site";
-import { EASE_OUT, Magnetic, ScrambleText, SplitText, useMediaQuery } from "@shared/motion";
+import { EASE_OUT, Magnetic, ScrambleText, useMediaQuery } from "@shared/motion";
+import KineticHeadline from "./KineticHeadline";
 
 // three.js only downloads once the text has painted (audit F03, F04).
 const HeroCanvas = lazy(() => import("./HeroCanvas"));
-
-const AEONIK = '"Aeonik", sans-serif';
-const GRIDULAR = '"Gridular", sans-serif';
-
-/** One letter per word in Gridular, the rest in Aeonik: the Genesis motif. */
-const GRIDULAR_LETTER = {
-  Reach: 2,
-  "India's": 0,
-  student: 3,
-  builders: 1,
-  at: 1,
-  "hackathons.": 4,
-};
-
-const HEADLINE = ["Reach India's student builders", "at hackathons."];
-
-function renderChar(ch, ci, word) {
-  return (
-    <span style={{ fontFamily: GRIDULAR_LETTER[word] === ci ? GRIDULAR : AEONIK }}>{ch}</span>
-  );
-}
 
 function useIdleMount(enabled, delay = 900) {
   const [ready, setReady] = useState(false);
@@ -157,7 +137,7 @@ export default function Hero({ ready = true }) {
       {/* Mascot: centred, rising from the bottom edge, below the headline. */}
       {showModel ? (
         // Outer div centres; inner motion div owns the scroll transform.
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] hidden h-[64vh] justify-center lg:flex xl:h-[74vh]">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] hidden h-[62vh] justify-center lg:flex xl:h-[68vh]">
           <motion.div style={{ y: modelY }} className="relative h-full w-[min(1100px,100%)]">
             <ErrorBoundary compact title="3D hero unavailable." fallback={() => null}>
               <Suspense fallback={null}>
@@ -182,18 +162,7 @@ export default function Hero({ ready = true }) {
             active={ready}
           />
         </div>
-        <SplitText
-          as="h1"
-          id="hero-title"
-          lines={HEADLINE}
-          trigger="mount"
-          active={ready}
-          delay={0.35}
-          stagger={0.08}
-          duration={1.2}
-          renderChar={renderChar}
-          className="mt-5 font-display text-[clamp(2.3rem,4.7vw,5.4rem)] leading-[0.92] tracking-[-0.01em] text-[var(--heading)]"
-        />
+        <KineticHeadline id="hero-title" ready={ready} scrollYProgress={scrollYProgress} />
       </motion.div>
 
       <div className="flex-1" />
